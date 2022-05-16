@@ -1,0 +1,47 @@
+#create a volume for the my sql container.To ensure Data persists after my sql container is stopped
+volumes:
+  datafiles:
+
+services:
+  #db Service
+  db:
+    #Pull the latest mysql image
+    image: mysql
+    hostname: db_test
+    #Map port 3306 on the mysql container to port 3306 in the host
+    ports:
+      - 3306:3306
+    #Specify where the persisted Data should be stored
+    volumes:
+      #- datafiles:/var/lib/mysql
+      - ./sql-scripts:/docker-entrypoint-initdb.d
+    restart: always
+    #Specify Environment Variables for mysql
+    environment: 
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: gassydb
+      MYSQL_USER: gassyadmin
+      MYSQL_PASSWORD: password
+  #Api  Service
+  api:
+    build:
+      context: .
+      #Use the DockerFile in that Directory
+      dockerfile: Dockerfile
+    #This Service Depends on the db service specifed above
+    depends_on: 
+      - db
+    #command: sh -c yarn install && yarn run dev
+    #Map port 8888 in the docker container to port 80 in the Api 
+    ports:
+      - 5200:80
+    restart: always
+    #Specify Environment Variables for the Api Service
+    environment: 
+      - ConnectionStrings:MYSQL_PASSWORD=password
+      - ConnectionStrings:MYSQL_USER=gassyadmin
+      - ConnectionStrings:MYSQL_DATABASE=gassydb
+      - ConnectionStrings:DBHOST=db_test
+      - ConnectionStrings:DBPORT=3306
+    volumes:
+      - ~/.vsdbg:/remote_debugger:rw

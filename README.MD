@@ -1,0 +1,1 @@
+Gassy; My personal api for scraping synthesizer listings from Reverb, Ebay, Craigslist, etc and sending out notifications more frequently and more quickly than any of these services built in 'subscribe/automated search' functions offer.
