@@ -8,13 +8,15 @@ namespace Gassy.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class ReverbAgentController : ControllerBase
+    public class ListingController : ControllerBase
     {
         private IAgentService _agentService;
+        private IListingService _listingService;    
 
-        public ReverbAgentController(IAgentService agentService)
+        public ListingController(IAgentService agentService, IListingService listingService)
         {
             _agentService = agentService;
+            _listingService = listingService;
         }
 
         [HttpPost("authenticate")]
@@ -32,7 +34,7 @@ namespace Gassy.Controllers
         [HttpGet("GetListings")]
         public async Task<ActionResult<IEnumerable<Listing>>> GetListing()
         {
-            var listings = await _agentService.GetListings();
+            var listings = await _listingService.GetListings();
             return Ok(listings);
         }
 
@@ -41,7 +43,7 @@ namespace Gassy.Controllers
         public async Task<ActionResult<Listing>> AddListing(Listing listing)
         {
             Console.WriteLine(listing.Make);
-            listing = await _agentService.AddListing(listing);
+            listing = await _listingService.AddListing(listing);
             return Ok(listing);
         }
 

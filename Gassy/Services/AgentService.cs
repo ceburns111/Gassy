@@ -17,10 +17,6 @@ namespace Gassy.Services
     {
         AuthenticateResponse Authenticate(AuthenticateRequest model);
         Task<Agent> GetById(int id);
-        Task<Listing> GetListing(int id);
-        Task<IEnumerable<Listing>> GetListings();
-
-        Task<Listing> AddListing(Listing listing); 
     }
 
     public class AgentService : IAgentService
@@ -54,36 +50,8 @@ namespace Gassy.Services
                 }
         }
 
-        public async Task<Listing> GetListing(int id){
-            var query = $"select * from listing where id = {id}"; 
-            using (var conn = new MySqlConnection((connString))){
-                var listing = await conn.QueryAsync<Listing>(query, CommandType.Text, commandTimeout: 0);
-                if (listing != null) return listing.FirstOrDefault(); 
-                return null;
-            }
-        }
+       
 
-          public async Task<IEnumerable<Listing>> GetListings(){
-            var query = $@"select * from listing"; 
-            using (var conn = new MySqlConnection((connString))){
-                var listings = await conn.QueryAsync<Listing>(query, CommandType.Text, commandTimeout: 0);
-                if (listings != null) return listings; 
-                return null;
-            }
-        }
-
-        public async Task<Listing> AddListing(Listing listing){
-            var query = $@"
-                INSERT INTO listing (SiteId, Make, Model, Price)
-                Values('{listing.SiteId}', '{listing.Make}', '{listing.Model}', {listing.Price})";
-                //, '{listing.CreatedAt}', '{listing.UpdatedAt}');"; 
-
-
-            using (var conn = new MySqlConnection((connString))){
-                await conn.ExecuteAsync(query);
-                return listing; 
-            }
-        }
 
         public async Task<Agent> GetById(int id)
         {

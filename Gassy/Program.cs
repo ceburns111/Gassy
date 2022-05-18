@@ -1,16 +1,17 @@
 using Gassy.Helpers;
 using Gassy.Services;
+using Gassy.Models;
+ using Microsoft.EntityFrameworkCore; 
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 {
-    var services = builder.Services;
-    services.AddCors();
-    services.AddControllers();
-    services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
-    services.AddScoped<IAgentService, AgentService>();
-    
+    builder.Services.AddCors();
+    builder.Services.AddControllers();
+    builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
+    builder.Services.AddScoped<IAgentService, AgentService>();
+    builder.Services.AddScoped<IListingService, ListingService>();
 
 }
 
