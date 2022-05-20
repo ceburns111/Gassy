@@ -10,49 +10,67 @@ using Microsoft.EntityFrameworkCore;
 using Dapper;
 using MySql.Data.MySqlClient;
 
+
 namespace Gassy.Services
 {
-    public interface IListingService
-    {
+  
+    public class ListingService : IListingService { 
         
-        Task<IEnumerable<Listing>> GetListings();
-
-        Task<Listing> AddListing(Listing listing); 
-    }
-
-    public class ListingService : IListingService {
-        private readonly AppSettings _appSettings;
-
-        //private readonly ListingContext _context;
         private readonly IConfiguration _configuration;
         private readonly string connString;
 
-        public ListingService(IOptions<AppSettings> appSettings, IConfiguration configuration)
+        public ListingService(IConfiguration configuration)
         {
-            _appSettings = appSettings.Value; 
             _configuration = configuration;
+            var host =  _configuration["ConnectionStrings:DBHOST"] ?? _configuration.GetConnectionString("DBHOST");
+            var port =  _configuration["ConnectionStrings:DBPORT"] ?? _configuration.GetConnectionString("DBPORT");
+            var password = _configuration["ConnectionStrings:MYSQL_PASSWORD"] ?? _configuration.GetConnectionString("MYSQL_PASSWORD");
+            var userName = _configuration["ConnectionStrings:MYSQL_USER"] ?? _configuration.GetConnectionString("MYSQL_USER");
+            var db  = _configuration["ConnectionStrings:MYSQL_DATABASE"] ?? _configuration.GetConnectionString("MYSQL_DATABASE");
+            connString = $"Server={host}; Uid={userName}; Pwd={password};Port={port}; Database={db}";
         }
 
-               public async Task<IEnumerable<Listing>> GetListings(){
+        public async Task<IEnumerable<Listing>> GetListings(){
             var query = $@"select * from listing"; 
-            using (var conn = new MySqlConnection((connString))){
-                var listings = await conn.QueryAsync<Listing>(query, CommandType.Text, commandTimeout: 0);
-                if (listings != null) return listings; 
-                return null;
-            }
+            using var conn = new MySqlConnection(connString);
+            List<Listing>? listings = (await conn.QueryAsync<Listing>(query, CommandType.Text, commandTimeout: 0)).ToList();
+            return listings; 
         }
 
         public async Task<Listing> AddListing(Listing listing){
             var query = $@"
-                INSERT INTO listing (SiteId, Make, Model, Price)
-                Values('{listing.SiteId}', '{listing.Make}', '{listing.Model}', {listing.Price})";
-                //, '{listing.CreatedAt}', '{listing.UpdatedAt}');"; 
+                INSERT INTO 
+                listing (
+                    SiteId
+                    Make, 
+                    Model,
+                    Price,
+                    ItemDescription,
+                    ItemCondition,
+                    OffersEnabled,
+                    Link,
+                    ListingCreatedAt,
+                    ListingUpdatedAt
+                    UpdatedAt
+                    )
+                Values(
+                    '{listing.SiteId}', 
+                    '{listing.Make}', 
+                    '{listing.Model}', 
+                     {listing.Price}),
+                    '{listing.ItemDescription}',
+                    '{listing.ItemCondition}',
+                    '{listing.OffersEnabled}',
+                    '{listing.Link}',
+                    '{listing.ListingCreatedAt}',
+                    '{listing.ListingUpdatedAt}',
+                    '{listing.UpdatedAt}'
+                    ";
 
 
-            using (var conn = new MySqlConnection((connString))){
-                await conn.ExecuteAsync(query);
-                return listing; 
-            }
+            using var conn = new MySqlConnection(connString);
+            await conn.ExecuteAsync(query);
+            return listing;
         }
     }
 
