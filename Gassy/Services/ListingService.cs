@@ -30,18 +30,29 @@ namespace Gassy.Services
             connString = $"Server={host}; Uid={userName}; Pwd={password};Port={port}; Database={db}";
         }
 
-        public async Task<IEnumerable<Listing>> GetListings(){
+        public async Task<IEnumerable<Listing>> GetAllListings(){
             var query = $@"select * from listing"; 
             using var conn = new MySqlConnection(connString);
-            List<Listing>? listings = (await conn.QueryAsync<Listing>(query, CommandType.Text, commandTimeout: 0)).ToList();
-            return listings; 
+            var listings = await conn.QueryAsync<Listing>(query, CommandType.Text, commandTimeout: 0);
+            if (listings != null) 
+                return listings;
+            return null;
+        }
+
+        public async Task<Listing> GetListingById(int id) {
+            var query = $@"select * from listing where Id = '{id}'"; 
+            using var conn = new MySqlConnection(connString);
+            var listing = (await conn.QueryAsync<Listing>(query, CommandType.Text, commandTimeout: 0)).FirstOrDefault();
+            if (listing != null) 
+                return listing;
+            return null; 
         }
 
         public async Task<Listing> AddListing(Listing listing){
             var query = $@"
                 INSERT INTO 
                 listing (
-                    SiteId
+                    SiteId, 
                     Make, 
                     Model,
                     Price,
@@ -50,23 +61,22 @@ namespace Gassy.Services
                     OffersEnabled,
                     Link,
                     ListingCreatedAt,
-                    ListingUpdatedAt
+                    ListingUpdatedAt,
                     UpdatedAt
                     )
                 Values(
                     '{listing.SiteId}', 
-                    '{listing.Make}', 
-                    '{listing.Model}', 
-                     {listing.Price}),
+                    '{listing.Make}' , 
+                    '{listing.Model}' , 
+                     {listing.Price},
                     '{listing.ItemDescription}',
                     '{listing.ItemCondition}',
-                    '{listing.OffersEnabled}',
+                    {listing.OffersEnabled},
                     '{listing.Link}',
                     '{listing.ListingCreatedAt}',
                     '{listing.ListingUpdatedAt}',
                     '{listing.UpdatedAt}'
-                    ";
-
+                    )";
 
             using var conn = new MySqlConnection(connString);
             await conn.ExecuteAsync(query);
