@@ -31,7 +31,7 @@ namespace Gassy.Models
         [JsonPropertyName("price")]
         public decimal Price { get; set; }
 
-        [JsonPropertyName("price")]
+        [JsonPropertyName("shipping")]
         public decimal Shipping{ get; set; }
 
         [JsonPropertyName("offers_enabled")]
@@ -41,7 +41,5 @@ namespace Gassy.Models
         public string? Link { get; set; }
 
         public DateTime UpdatedAt { get;set; }
-
-      
     }
 }
