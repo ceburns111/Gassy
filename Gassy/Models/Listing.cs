@@ -17,27 +17,31 @@ namespace Gassy.Models
         public string? Model { get; set; }
 
         [JsonPropertyName("created_at")]
-        public DateTime CreatedAt { get; set; }
+        public DateTime ListingCreatedAt { get; set; }
 
         [JsonPropertyName("updated_at")]
-        public DateTime UpdatedAt { get; set; }
+        public DateTime ListingUpdatedAt { get; set; }
 
         [JsonPropertyName("description")]
-        public string? Description { get; set; }
+        public string? ItemDescription { get; set; }
 
-        // [JsonPropertyName("condition")]
-        // public string Condition { get; set; }
+        [JsonPropertyName("condition")]
+        public string? ItemCondition { get; set; }
 
         [JsonPropertyName("price")]
         public decimal Price { get; set; }
+
+        [JsonPropertyName("price")]
+        public decimal Shipping{ get; set; }
 
         [JsonPropertyName("offers_enabled")]
         public bool OffersEnabled { get; set; }
 
         [JsonPropertyName("link")]
-        public string Link { get; set; }
+        public string? Link { get; set; }
 
-        [JsonPropertyName("condition")]
-        public string Condition { get; set; }
+        public DateTime UpdatedAt { get;set; }
+
+      
     }
 }

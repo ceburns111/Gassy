@@ -13,12 +13,6 @@ using MySql.Data.MySqlClient;
 
 namespace Gassy.Services
 {
-      public interface IAgentService
-    {
-        AuthenticateResponse Authenticate(AuthenticateRequest model);
-        Task<Agent> GetById(int id);
-    }
-
     public class AgentService : IAgentService
     {
         private readonly AppSettings _appSettings;
@@ -41,28 +35,29 @@ namespace Gassy.Services
 
         public AuthenticateResponse Authenticate(AuthenticateRequest model)
         {
-                string query = $"SELECT * FROM agent WHERE Agentname = '{model.AgentName}' and AgentPassword = '{model.AgentPassword}'";
-                using (var connection = new MySqlConnection(connString))
-                {
-                    var agent = connection.Query<Agent>(query, CommandType.Text, commandTimeout: 0).FirstOrDefault();     
-                    if (agent == null) return null;
-                    return new AuthenticateResponse(agent,  GenerateJwtToken(agent));
-                }
+            string query = $@"
+                SELECT * 
+                FROM agent 
+                WHERE Agentname = '{model.AgentName}' 
+                    AND AgentPassword = '{model.AgentPassword}'
+            ";
+            
+            using (var connection = new MySqlConnection(connString))
+            {
+                var agent = connection.Query<Agent>(query, CommandType.Text, commandTimeout: 0).FirstOrDefault();     
+                if (agent == null) return null;
+                return new AuthenticateResponse(agent,  GenerateJwtToken(agent));
+            }
         }
-
-       
-
 
         public async Task<Agent> GetById(int id)
         {
-            //throw new NotImplementedException(); 
-            // try {
-                string query = $"SELECT * FROM agent where id = {id}";
-                using (var connection = new MySqlConnection(connString)) {
-                    var agents = await connection.QueryAsync<Agent>(query, CommandType.Text, commandTimeout: 0);
-                    var agent = agents.FirstOrDefault(); 
-                    return agent; 
-                }
+            string query = $"SELECT * FROM agent where id = {id}";
+            using (var connection = new MySqlConnection(connString)) {
+                var agents = await connection.QueryAsync<Agent>(query, CommandType.Text, commandTimeout: 0);
+                var agent = agents.FirstOrDefault(); 
+                return agent; 
+            }
         }
 
         public string GenerateJwtToken(Agent agent)

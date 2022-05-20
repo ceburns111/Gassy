@@ -16,19 +16,6 @@ var builder = WebApplication.CreateBuilder(args);
 }
 
 
-//Add Listing DbContext
-{
-    var host = builder.Configuration.GetConnectionString("DBHOST");
-    var port = builder.Configuration.GetConnectionString("DBPORT");
-    var password = builder.Configuration.GetConnectionString("MYSQL_PASSWORD");
-    var user = builder.Configuration.GetConnectionString("MYSQL_USER");
-    var database = builder.Configuration.GetConnectionString("MYSQL_DATABASE");
-
-    builder.Services.AddDbContext<ListingContext>(
-        options => options.UseMySQL($"Server={host}; Uid={user}; Pwd={password};Port={port}; Database={database}")
-    );
-}
-
 var app = builder.Build();
 
 {
