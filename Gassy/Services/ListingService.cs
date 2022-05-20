@@ -39,14 +39,27 @@ namespace Gassy.Services
             return null;
         }
 
-        public async Task<Listing> GetListingById(int id) {
-            var query = $@"select * from listing where Id = '{id}'"; 
+
+         public async Task<Listing> UpdateListing(Listing listing) {
+            var query = $@"
+                UPDATE listing
+                SET  
+                    Make = '{listing.Make}', 
+                    Model = '{listing.Model}',
+                    Price = '{listing.Price}',
+                    ItemDescription = '{listing.ItemDescription}',
+                    ItemCondition = '{listing.ItemCondition}',
+                    OffersEnabled = {listing.OffersEnabled},
+                    Link = '{listing.Link}',
+                    ListingUpdatedAt = '{listing.ListingUpdatedAt}',
+                    UpdatedAt = '{DateTime.Now:yyyy-MM-dd HH:mm:ss}'
+                WHERE SiteId = '{listing.SiteId}'
+            "; 
             using var conn = new MySqlConnection(connString);
-            var listing = (await conn.QueryAsync<Listing>(query, CommandType.Text, commandTimeout: 0)).FirstOrDefault();
-            if (listing != null) 
-                return listing;
-            return null; 
-        }
+            await conn.ExecuteAsync(query);
+            return listing; 
+         }
+
 
         public async Task<Listing> AddListing(Listing listing){
             var query = $@"
