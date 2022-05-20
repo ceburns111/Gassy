@@ -6,6 +6,8 @@ namespace Gassy.Services
     {
         Task<IEnumerable<Listing>> GetAllListings();
         Task<Listing> AddListing(Listing listing); 
+        
+        Task<Listing> UpdateListing(Listing listing);
     }
 
 }

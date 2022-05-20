@@ -27,6 +27,14 @@ namespace Gassy.Controllers
         }
 
         [Authorize]
+        [HttpPut("update")]
+        public async Task<ActionResult<IEnumerable<Listing>>> UpdateListing(Listing listing)
+        {
+            var updatedListing = await _listingService.UpdateListing(listing);
+            return Ok(updatedListing);
+        }
+
+        [Authorize]
         [HttpPost("new")]
         public async Task<ActionResult<Listing>> AddListing(Listing listing)
         {
