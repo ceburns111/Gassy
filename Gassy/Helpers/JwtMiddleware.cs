@@ -21,7 +21,6 @@ namespace Gassy.Helpers
         public async Task Invoke(HttpContext context, IAgentService agentService)
         {
             var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-            //var agentId - jwtUtils.ValidateJwtToken(token);
             if (token != null)
                 await AttachAgentToContext(context, agentService, token);
             await _next(context);

@@ -45,3 +45,5 @@ services:
       - ConnectionStrings:DBPORT=3306
     volumes:
       - ~/.vsdbg:/remote_debugger:rw
+
+#//54.91.167.196
