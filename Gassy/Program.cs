@@ -1,7 +1,8 @@
 using Gassy.Helpers;
 using Gassy.Services;
-using Gassy.Models;
+using Gassy.Models.ReverbModels;
  using Microsoft.EntityFrameworkCore; 
+
 
 
 
@@ -12,7 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
     builder.Services.AddControllers();
     builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
     builder.Services.AddScoped<IAgentService, AgentService>();
-    builder.Services.AddScoped<IListingService, ListingService>();
+    builder.Services.AddScoped<IReverbListingService, ReverbListingService>();
 }
 
 
