@@ -1,14 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
-using Gassy.Models.ReverbModels;
-
+using Gassy.Models; 
 namespace Gassy.Services
 {
     public interface IReverbListingService
     {
-        Task<IEnumerable<ReverbListing>> GetListings(); 
-        Task<ReverbListing> GetListing(int id);
-        Task<ReverbListing> CreateListing(ReverbListing listing); 
-        Task<ReverbListing> UpdateListing(ReverbListing listing);
+        Task<IEnumerable<ReverbListingDto>> GetListings(); 
+        Task<ReverbListingDto> GetListing(int id);
+        Task<ReverbListingDto> CreateListing(ReverbListingDto listing); 
+        Task<ReverbListingDto> UpdateListing(ReverbListingDto listing);
         Task<int> DeleteListing(int reverbId);
     }
 

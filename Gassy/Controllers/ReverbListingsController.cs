@@ -1,7 +1,6 @@
 using Gassy.Models;
 using Gassy.Helpers;
 using Gassy.Services;
-using Gassy.Models.ReverbModels;
 using Microsoft.AspNetCore.Mvc;
 
 
@@ -21,23 +20,23 @@ namespace Gassy.Controllers
         
         [Authorize]
         [HttpGet("All")]
-        public async Task<ActionResult<IEnumerable<ReverbListing>>> GetListings()
+        public async Task<ActionResult<IEnumerable<ReverbListingDto>>> GetListings()
         {
             var listings = await _reverbService.GetListings();
             return Ok(listings);
         }
 
         [Authorize]
-        [HttpPost("{id}")]
-        public async Task<ActionResult<int>> GetListing(int id)
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ReverbListingDto>> GetListing(int id)
         {
             var listing = await _reverbService.GetListing(id);
-            return Ok(listing.id);
+            return Ok(listing);
         }
 
         [Authorize]
         [HttpPut("Update")]
-        public async Task<ActionResult<IEnumerable<ReverbListing>>> UpdateListing(ReverbListing listing)
+        public async Task<ActionResult<IEnumerable<ReverbListingDto>>> UpdateListing(ReverbListingDto listing)
         {
             var updatedListing = await _reverbService.UpdateListing(listing);
             return Ok(updatedListing);
@@ -45,7 +44,7 @@ namespace Gassy.Controllers
 
         [Authorize]
         [HttpPost("New")]
-        public async Task<ActionResult<ReverbListing>> CreateListing(ReverbListing reverbListing)
+        public async Task<ActionResult<ReverbListingDto>> CreateListing(ReverbListingDto reverbListing)
         {
             var listing = await _reverbService.CreateListing(reverbListing);
             return Ok(listing);
@@ -56,7 +55,7 @@ namespace Gassy.Controllers
         public async Task<ActionResult<int>> DeleteListing(int id)
         {
             var listingId = await _reverbService.DeleteListing(id);
-            return Ok(listingId);
+            return Ok($"Listing Deleted:{listingId}");
         }
     }
 }
