@@ -1,3 +1,5 @@
+using GassyFunctionHelpers.Models;
+
 namespace Gassy.Models
 {
     public class AuthenticateResponse

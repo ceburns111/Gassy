@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-
+using GassyFunctionHelpers.Models;
 
 namespace Gassy.Models
 {
