@@ -6,13 +6,12 @@ using System.Security.Claims;
 using System.Text;
 using Gassy.Models;
 using Gassy.Helpers;
-using Gassy.Models;
 using System.Data;
 using Microsoft.EntityFrameworkCore;
 using Dapper;
 using System.Linq;
 using MySql.Data.MySqlClient;
-
+using GassyFunctionHelpers.Models;
 
 namespace Gassy.Services
 {
@@ -33,31 +32,31 @@ namespace Gassy.Services
             connString = $"Server={host}; Uid={userName}; Pwd={password};Port={port}; Database={db}";
         }
 
-        public async Task<IEnumerable<ReverbListingDto>> GetListings(){
+        public async Task<IEnumerable<ListingDto>> GetListings(){
             var query = $@"
                 SELECT *
                 FROM ReverbListing"; 
             using var conn = new MySqlConnection(connString);
-            var listings = await conn.QueryAsync<ReverbListingDto>(query, CommandType.Text, commandTimeout: 0);
+            var listings = await conn.QueryAsync<ListingDto>(query, CommandType.Text, commandTimeout: 0);
             if (listings != null) 
                 return listings;
             return null; 
         }
 
 
-        public async Task<ReverbListingDto> GetListing(int reverbId) {
+        public async Task<ListingDto> GetListing(int reverbId) {
             var query = $@"
                 SELECT *
                 FROM ReverbListing
                 WHERE ReverbId = {reverbId}"; 
             using var conn = new MySqlConnection(connString);
-            var listing = (await conn.QueryAsync<ReverbListingDto>(query, CommandType.Text, commandTimeout: 0)).FirstOrDefault(); 
+            var listing = (await conn.QueryAsync<ListingDto>(query, CommandType.Text, commandTimeout: 0)).FirstOrDefault(); 
             if (listing != null) 
                 return listing;
             return null; 
         }
 
-         public async Task<ReverbListingDto> UpdateListing(ReverbListingDto listing) {
+         public async Task<ListingDto> UpdateListing(ListingDto listing) {
             var query = $@"
                 UPDATE ReverbListing
                 SET  
@@ -79,7 +78,7 @@ namespace Gassy.Services
          }
 
 
-        public async Task<ReverbListingDto> CreateListing(ReverbListingDto listing){
+        public async Task<ListingDto> CreateListing(ListingDto listing){
             var query = $@"
                 INSERT INTO 
                     ReverbListing (
