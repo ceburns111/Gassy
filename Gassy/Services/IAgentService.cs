@@ -1,5 +1,4 @@
 using Gassy.Models;
-using GassyFunctionHelpers.Models;
 
 namespace Gassy.Services
 {

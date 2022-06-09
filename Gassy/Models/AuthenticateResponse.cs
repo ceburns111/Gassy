@@ -1,4 +1,3 @@
-using GassyFunctionHelpers.Models;
 
 namespace Gassy.Models
 {

@@ -9,7 +9,6 @@ using System.Data;
 using Microsoft.EntityFrameworkCore;
 using Dapper;
 using MySql.Data.MySqlClient;
-using GassyFunctionHelpers.Models;
 
 namespace Gassy.Services
 {

@@ -2,7 +2,6 @@ using Gassy.Models;
 using Gassy.Helpers;
 using Gassy.Services;
 using Microsoft.AspNetCore.Mvc;
-using GassyFunctionHelpers.Models;
 
 
 namespace Gassy.Controllers
