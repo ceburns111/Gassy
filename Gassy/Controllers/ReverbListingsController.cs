@@ -18,7 +18,6 @@ namespace Gassy.Controllers
         }
 
         
-        [Authorize]
         [HttpGet("All")]
         public async Task<ActionResult<IEnumerable<ListingDto>>> GetListings()
         {
@@ -26,7 +25,6 @@ namespace Gassy.Controllers
             return Ok(listings);
         }
 
-        [Authorize]
         [HttpGet("{id}")]
         public async Task<ActionResult<ListingDto>> GetListing(int id)
         {
