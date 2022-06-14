@@ -2,7 +2,6 @@ using Gassy.Models;
 using Gassy.Helpers;
 using Gassy.Services;
 using Microsoft.AspNetCore.Mvc;
-using GassyFunctionHelpers.Models;
 
 
 namespace Gassy.Controllers
@@ -19,7 +18,6 @@ namespace Gassy.Controllers
         }
 
         
-        [Authorize]
         [HttpGet("All")]
         public async Task<ActionResult<IEnumerable<ListingDto>>> GetListings()
         {
@@ -27,7 +25,6 @@ namespace Gassy.Controllers
             return Ok(listings);
         }
 
-        [Authorize]
         [HttpGet("{id}")]
         public async Task<ActionResult<ListingDto>> GetListing(int id)
         {

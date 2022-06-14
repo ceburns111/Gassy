@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using GassyFunctionHelpers.Models;
+using Gassy.Models;
 
 namespace Gassy.Helpers
 {

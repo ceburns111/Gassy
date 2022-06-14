@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Gassy.Models; 
-using GassyFunctionHelpers.Models;
 
 namespace Gassy.Services
 {

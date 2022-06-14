@@ -1,9 +1,8 @@
 using System.ComponentModel.DataAnnotations;
-using GassyFunctionHelpers.Models;
 
 namespace Gassy.Models
 {
-    public class AuthenticateRequest
+    public class AuthenticateAgentRequest
     {
         [Required]
         public string AgentName { get; set; }

@@ -1,11 +1,10 @@
 using Gassy.Models;
-using GassyFunctionHelpers.Models;
 
 namespace Gassy.Services
 {
      public interface IAgentService
     {
-        AuthenticateResponse Authenticate(AuthenticateRequest model);
+        AuthenticateAgentResponse Authenticate(AuthenticateAgentRequest model);
         Task<Agent> GetById(int id);
     }
 }
