@@ -12,9 +12,9 @@ namespace Gassy.Controllers
     {
         private IUserService _userService;
 
-        public UserController(IUserService agentService)
+        public UserController(IUserService userService)
         {
-            _userService = agentService;
+            _userService = userService;
         }
 
         [HttpPost("authenticate")]
