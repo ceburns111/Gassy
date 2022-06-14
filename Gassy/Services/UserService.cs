@@ -12,14 +12,14 @@ using MySql.Data.MySqlClient;
 
 namespace Gassy.Services
 {
-    public class AgentService : IAgentService
+    public class UserService : IUserService
     {
         private readonly AppSettings _appSettings;
 
         private readonly IConfiguration _configuration;
         private readonly string connString;
 
-        public AgentService(IOptions<AppSettings> appSettings, IConfiguration configuration)
+        public UserService(IOptions<AppSettings> appSettings, IConfiguration configuration)
         {
             _appSettings = appSettings.Value; 
             _configuration = configuration;
@@ -31,34 +31,34 @@ namespace Gassy.Services
             connString = $"Server={host}; Uid={userName}; Pwd={password};Port={port}; Database={db}";
         }
 
-        public AuthenticateAgentResponse Authenticate(AuthenticateAgentRequest model)
+        public AuthenticateUserResponse Authenticate(AuthenticateUserRequest model)
         {
             string query = $@"
                 SELECT * 
-                FROM agent 
-                WHERE Agentname = '{model.AgentName}' 
-                    AND AgentPassword = '{model.AgentPassword}'
+                FROM user
+                WHERE UserName = '{model.UserName}' 
+                    AND UserPassword = '{model.UserPassword}'
             ";
             
             using (var connection = new MySqlConnection(connString))
             {
-                var agent = connection.Query<Agent>(query, CommandType.Text, commandTimeout: 0).FirstOrDefault();     
+                var agent = connection.Query<User>(query, CommandType.Text, commandTimeout: 0).FirstOrDefault();     
                 if (agent == null) return null;
-                return new AuthenticateAgentResponse(agent,  GenerateJwtToken(agent));
+                return new AuthenticateUserResponse(agent,  GenerateJwtToken(agent));
             }
         }
 
-        public async Task<Agent> GetById(int id)
+        public async Task<User> GetById(int id)
         {
-            string query = $"SELECT * FROM agent where id = {id}";
+            string query = $"SELECT * FROM user where id = {id}";
             using (var connection = new MySqlConnection(connString)) {
-                var agents = await connection.QueryAsync<Agent>(query, CommandType.Text, commandTimeout: 0);
+                var agents = await connection.QueryAsync<User>(query, CommandType.Text, commandTimeout: 0);
                 var agent = agents.FirstOrDefault(); 
                 return agent; 
             }
         }
 
-        public string GenerateJwtToken(Agent agent)
+        public string GenerateJwtToken(User agent)
         {
             // generate token that is valid for 7 days
             var tokenHandler = new JwtSecurityTokenHandler();

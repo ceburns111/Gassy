@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Gassy.Models
 {
-    public class AuthenticateRequest
+    public class AuthenticateAgentRequest
     {
         [Required]
         public string AgentName { get; set; }
