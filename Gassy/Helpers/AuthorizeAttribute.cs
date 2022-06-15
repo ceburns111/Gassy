@@ -4,7 +4,6 @@ using Gassy.Models;
 
 namespace Gassy.Helpers
 {
-
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
     public class AuthorizeAttribute : Attribute, IAuthorizationFilter
     {

@@ -1,5 +1,4 @@
 using Gassy.Models;
-using Gassy.Helpers;
 using Gassy.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,7 +17,7 @@ namespace Gassy.Controllers
         }
 
         [HttpPost("authenticate")]
-        public IActionResult Authenticate(AuthenticateAgentRequest model)
+        public IActionResult Authenticate(AuthenticateRequest model)
         {
             var response = _agentService.Authenticate(model);
 

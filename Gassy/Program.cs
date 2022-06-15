@@ -1,9 +1,6 @@
 using Gassy.Helpers;
 using Gassy.Services;
 
-
-
-
 var builder = WebApplication.CreateBuilder(args);
 
 {

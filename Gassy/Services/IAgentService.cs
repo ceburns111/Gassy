@@ -4,7 +4,7 @@ namespace Gassy.Services
 {
      public interface IAgentService
     {
-        AuthenticateAgentResponse Authenticate(AuthenticateAgentRequest model);
+        AuthenticateResponse Authenticate(AuthenticateRequest model);
         Task<Agent> GetById(int id);
     }
 }

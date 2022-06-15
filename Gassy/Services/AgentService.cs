@@ -31,7 +31,7 @@ namespace Gassy.Services
             connString = $"Server={host}; Uid={userName}; Pwd={password};Port={port}; Database={db}";
         }
 
-        public AuthenticateAgentResponse Authenticate(AuthenticateAgentRequest model)
+        public AuthenticateResponse Authenticate(AuthenticateRequest model)
         {
             string query = $@"
                 SELECT * 
@@ -44,7 +44,7 @@ namespace Gassy.Services
             {
                 var agent = connection.Query<Agent>(query, CommandType.Text, commandTimeout: 0).FirstOrDefault();     
                 if (agent == null) return null;
-                return new AuthenticateAgentResponse(agent,  GenerateJwtToken(agent));
+                return new AuthenticateResponse(agent,  GenerateJwtToken(agent));
             }
         }
 
