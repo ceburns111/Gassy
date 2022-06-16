@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Gassy.Models
+namespace Gassy.Models.Users
 {
-    public class AuthenticateUserRequest
+    public class AuthenticateRequest
     {
         [Required]
         public string UserName { get; set; }

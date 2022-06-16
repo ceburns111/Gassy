@@ -1,6 +1,6 @@
-CREATE TABLE gassydb.ReverbListing (
-id int UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-ReverbId int,
+CREATE TABLE gassydb.Listing (
+Id int UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+SiteId int,
 Make VARCHAR(30), 
 Model VARCHAR(30), 
 ItemDescription VARCHAR(250),

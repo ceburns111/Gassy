@@ -2,54 +2,55 @@ using Gassy.Models;
 using Gassy.Helpers;
 using Gassy.Services;
 using Microsoft.AspNetCore.Mvc;
-
+using Gassy.Authorization;
+using Gassy.Entities; 
 
 namespace Gassy.Controllers
 {
     [ApiController]
-    [Route("ReverbListings")]
+    [Route("listings")]
     public class ReverbController : ControllerBase
     {
-        private IReverbListingService _reverbService;    
+        private IListingService _reverbService;    
 
-        public ReverbController(IReverbListingService reverbService)
+        public ReverbController(IListingService reverbService)
         {
             _reverbService = reverbService;
         }
 
         
-        [HttpGet("All")]
-        public async Task<ActionResult<IEnumerable<ListingDto>>> GetListings()
+        [HttpGet("all")]
+        public async Task<ActionResult<IEnumerable<Listing>>> GetListings()
         {
             var listings = await _reverbService.GetListings();
             return Ok(listings);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<ListingDto>> GetListing(int id)
+        public async Task<ActionResult<Listing>> GetListing(int id)
         {
             var listing = await _reverbService.GetListing(id);
             return Ok(listing);
         }
 
-        [Authorize]
-        [HttpPut("Update")]
-        public async Task<ActionResult<IEnumerable<ListingDto>>> UpdateListing(ListingDto listing)
+        [Authorize(RoleId.Admin)]
+        [HttpPut("update")]
+        public async Task<ActionResult<IEnumerable<Listing>>> UpdateListing(Listing listing)
         {
             var updatedListing = await _reverbService.UpdateListing(listing);
             return Ok(updatedListing);
         }
 
-        [Authorize]
-        [HttpPost("New")]
-        public async Task<ActionResult<ListingDto>> CreateListing(ListingDto reverbListing)
+        [Authorize(RoleId.Admin)]
+        [HttpPost("new")]
+        public async Task<ActionResult<Listing>> CreateListing(Listing reverbListing)
         {
             var listing = await _reverbService.CreateListing(reverbListing);
             return Ok(listing);
         }
 
-        [Authorize]
-        [HttpPost("Delete/{id}")]
+        [Authorize(RoleId.Admin)]
+        [HttpPost("delete/{id}")]
         public async Task<ActionResult<int>> DeleteListing(int id)
         {
             var listingId = await _reverbService.DeleteListing(id);
