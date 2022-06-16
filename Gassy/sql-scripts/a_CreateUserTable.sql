@@ -1,7 +1,11 @@
-CREATE TABLE gassydb.user (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    UserName VARCHAR(30), 
-    UserPassword VARCHAR(30)
+CREATE TABLE gassydb.User (
+    Id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    FirstName VARCHAR(20),
+    LastName VARCHAR(30),
+    Email VARCHAR(100),
+    UserName VARCHAR(25), 
+    UserPassword VARCHAR(15),
+    RoleId INT
     );
 
 

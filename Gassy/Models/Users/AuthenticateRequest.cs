@@ -1,13 +1,13 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Gassy.Models
+namespace Gassy.Models.Users
 {
     public class AuthenticateRequest
     {
         [Required]
-        public string AgentName { get; set; }
+        public string UserName { get; set; }
 
         [Required]
-        public string AgentPassword { get; set; }
+        public string UserPassword { get; set; }
     }
 }

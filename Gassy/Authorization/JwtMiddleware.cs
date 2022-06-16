@@ -3,9 +3,10 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using Gassy.Services;
+using Gassy.Helpers;
 
 
-namespace Gassy.Helpers
+namespace Gassy.Authorization
 {
     public class JwtMiddleware
     {
@@ -18,16 +19,18 @@ namespace Gassy.Helpers
             _appSettings = appSettings.Value;
         }
 
-        public async Task Invoke(HttpContext context, IAgentService agentService)
+        public async Task Invoke(HttpContext context, IUserService userService)
         {
+            Console.WriteLine("Invoking...");
             var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
             if (token != null)
-                await AttachAgentToContext(context, agentService, token);
+                await AttachUserToContext(context, userService, token);
             await _next(context);
         }
 
-        private async Task AttachAgentToContext(HttpContext context, IAgentService agentService, string token)
+        private async Task AttachUserToContext(HttpContext context, IUserService userService, string token)
         {
+            Console.WriteLine("Attaching user to context...");
             try
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
@@ -43,16 +46,16 @@ namespace Gassy.Helpers
                 }, out SecurityToken validatedToken);
 
                 var jwtToken = (JwtSecurityToken)validatedToken;
-                var agentId = int.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
+                var userId = int.Parse(jwtToken.Claims.First(x => x.Type == "Id").Value);
 
-                var agent = await agentService.GetById(agentId);
-                // attach agent to context on successful jwt validation
-                context.Items["agent"] = agent;
+                var user = await userService.GetById(userId);
+                // attach user to context on successful jwt validation
+                context.Items["User"] = user;
             }
             catch
             {
                 // do nothing if jwt validation fails
-                // agent is not attached to context so request won't have access to secure routes
+                // user is not attached to context so request won't have access to secure routes
             }
         }
     }
