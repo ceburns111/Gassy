@@ -33,7 +33,7 @@ namespace Gassy.Controllers
             return Ok(listing);
         }
 
-        [Authorize(RoleId.Admin)]
+        [Authorize(RoleId.Admin, RoleId.Agent)]
         [HttpPut("update")]
         public async Task<ActionResult<IEnumerable<Listing>>> UpdateListing(Listing listing)
         {
@@ -41,7 +41,7 @@ namespace Gassy.Controllers
             return Ok(updatedListing);
         }
 
-        [Authorize(RoleId.Admin)]
+        [Authorize(RoleId.Admin, RoleId.Agent)]
         [HttpPost("new")]
         public async Task<ActionResult<Listing>> CreateListing(Listing reverbListing)
         {
@@ -49,7 +49,7 @@ namespace Gassy.Controllers
             return Ok(listing);
         }
 
-        [Authorize(RoleId.Admin)]
+        [Authorize(RoleId.Admin, RoleId.Agent)]
         [HttpPost("delete/{id}")]
         public async Task<ActionResult<int>> DeleteListing(int id)
         {
