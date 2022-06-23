@@ -77,7 +77,7 @@ namespace Gassy.Services
                     OffersEnabled = {listing.OffersEnabled},
                     Link = '{listing.Link}',
                     CreatedAt = '{listing.CreatedAt:yyyy-MM-dd HH:mm:ss}',
-                    PublishedAt = '{listing.UpdatedAt:yyyy-MM-dd HH:mm:ss}'
+                    UpdatedAt = '{listing.UpdatedAt:yyyy-MM-dd HH:mm:ss}'
                 WHERE Id = '{listing.Id}'
             "; 
             using var conn = new MySqlConnection(connString);
