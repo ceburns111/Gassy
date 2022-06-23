@@ -19,6 +19,7 @@ var builder = WebApplication.CreateBuilder(args);
     services.AddScoped<IJwtUtils, JwtUtils>();
     builder.Services.AddScoped<IUserService, UserService>();
     builder.Services.AddScoped<IListingService, ListingService>();
+    builder.Services.AddScoped<IWishlistService, WishlistService>();
 }
 
 var app = builder.Build();

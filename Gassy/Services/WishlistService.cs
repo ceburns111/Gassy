@@ -20,7 +20,7 @@ namespace Gassy.Services
 {
    public interface IWishlistService
     {
-        Task<IEnumerable<WishlistItem>> GetWishlistItems(); 
+        Task<IEnumerable<WishlistItem>> GetWishlist(int ownerId); 
         Task<WishlistItem> GetWishlistItem(int id);
         Task<WishlistItem> CreateWishlistItem(WishlistItem listing); 
         Task<WishlistItem> UpdateWishlistItem(WishlistItem listing);
@@ -43,24 +43,82 @@ namespace Gassy.Services
             connString = $"Server={host}; Uid={userName}; Pwd={password};Port={port}; Database={db}";
         }
 
-        public async Task<IEnumerable<WishlistItem>> GetWishlistItems(){
-            throw new NotImplementedException(); 
+        public async Task<IEnumerable<WishlistItem>> GetWishlist(int ownerId){
+             var query = $@"
+                SELECT *
+                FROM WishlistItem
+                where OwnerId = {ownerId}"; 
+            using var conn = new MySqlConnection(connString);
+            var items = await conn.QueryAsync<WishlistItem>(query, CommandType.Text, commandTimeout: 0);
+            if (items != null) 
+                return items;
+            return null; 
         }
         
         public async Task<WishlistItem> GetWishlistItem(int id) {
-            throw new NotImplementedException(); 
+            var query = $@"
+                SELECT *
+                FROM WishlistItem
+                WHERE id = {id}"; 
+            using var conn = new MySqlConnection(connString);
+            var item = (await conn.QueryAsync<WishlistItem>(query, CommandType.Text, commandTimeout: 0))
+                .FirstOrDefault();
+            if (item != null) 
+                return item ;
+            return null;         
         }
 
-        public async Task<WishlistItem> CreateWishlistItem(WishlistItem listing) {
-              throw new NotImplementedException(); 
+
+        public async Task<WishlistItem> CreateWishlistItem(WishlistItem item) {
+               var query = $@"
+                INSERT INTO 
+                    WishlistItem 
+                        Make, 
+                        Model,
+                        MinPrice,
+                        MaxPrice,
+                        CreatedAt,
+                        OwnerId
+                        )
+                    Values(
+                        '{item.Make}', 
+                        '{item.Model}' , 
+                         {item.MinPrice},
+                         {item.MaxPrice},
+                        '{DateTime.Now.ToLongDateString()},
+                        '{item.OwnerId}'
+                        )";
+
+            using var conn = new MySqlConnection(connString);
+            await conn.ExecuteAsync(query);
+            return item;
         }
 
-        public async  Task<WishlistItem> UpdateWishlistItem(WishlistItem listing) {
-              throw new NotImplementedException(); 
+        public async  Task<WishlistItem> UpdateWishlistItem(WishlistItem item) {
+              var query = $@"
+                UPDATE Listing
+                SET  
+                        Make = '{item.Make}'
+                        Model = '{item.Model}',
+                        MinPrice = {item.MinPrice},
+                        MaxPrice = {item.MaxPrice},
+                        UpdatedAt = '{DateTime.Now.ToLongDateString()}',
+                        OwnerId
+                WHERE Id = '{item.Id}'
+            "; 
+            using var conn = new MySqlConnection(connString);
+            await conn.ExecuteAsync(query);
+            return item; 
         }
         
-        public async Task<int> DeleteWishlistItem(int reverbId) {
-              throw new NotImplementedException(); 
+        public async Task<int> DeleteWishlistItem(int id) {
+        var query = $@"
+                    DELETE FROM WishlistItem
+                    WHERE Id = {id}";
+
+            using var conn = new MySqlConnection(connString);
+            await conn.ExecuteAsync(query);
+            return id;         
         }
     }
 }    

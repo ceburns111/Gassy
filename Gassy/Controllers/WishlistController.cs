@@ -7,6 +7,7 @@ using Gassy.Authorization;
 
 namespace Gassy.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("wishlist")]
     public class WishlistController : ControllerBase
@@ -19,10 +20,10 @@ namespace Gassy.Controllers
         }
 
         
-        [HttpGet("all")]
-        public async Task<ActionResult<IEnumerable<WishlistItem>>> GetWishlistItems()
+        [HttpGet("items/{userId}")]
+        public async Task<ActionResult<IEnumerable<WishlistItem>>> GetWishlistItems(int userId)
         {
-            var wishlist = await _wishlistService.GetWishlistItems();
+            var wishlist = await _wishlistService.GetWishlist(userId);
             return Ok(wishlist);
         }
 
@@ -33,7 +34,6 @@ namespace Gassy.Controllers
             return Ok(listing);
         }
 
-        [Authorize(RoleId.Admin, RoleId.Agent)]
         [HttpPut("update")]
         public async Task<ActionResult<IEnumerable<WishlistItem>>> UpdateWishlistItem(WishlistItem listing)
         {
@@ -41,7 +41,6 @@ namespace Gassy.Controllers
             return Ok(updatedWishlistItem);
         }
 
-        [Authorize(RoleId.Admin, RoleId.Agent)]
         [HttpPost("new")]
         public async Task<ActionResult<WishlistItem>> CreateWishlistItem(WishlistItem reverbWishlistItem)
         {
@@ -49,7 +48,6 @@ namespace Gassy.Controllers
             return Ok(listing);
         }
 
-        [Authorize(RoleId.Admin, RoleId.Agent)]
         [HttpPost("delete/{id}")]
         public async Task<ActionResult<int>> DeleteWishlistItem(int id)
         {
