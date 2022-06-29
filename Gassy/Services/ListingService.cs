@@ -76,8 +76,8 @@ namespace Gassy.Services
                     ItemCondition = '{listing.ItemCondition}',
                     OffersEnabled = {listing.OffersEnabled},
                     Link = '{listing.Link}',
-                    CreatedAt = '{listing.CreatedAt:yyyy-MM-dd HH:mm:ss}',
-                    UpdatedAt = '{listing.UpdatedAt:yyyy-MM-dd HH:mm:ss}'
+                    CreatedAt = '{listing.CreatedAt:yyyy-MM-dd hh:mm:ss}',
+                    UpdatedAt = '{listing.UpdatedAt:yyyy-MM-dd hh:mm:ss}'
                 WHERE Id = '{listing.Id}'
             "; 
             using var conn = new MySqlConnection(connString);
@@ -110,9 +110,10 @@ namespace Gassy.Services
                         '{listing.ItemCondition}',
                         {listing.OffersEnabled},
                         '{listing.Link}',
-                        '{listing.CreatedAt:yyyy-MM-dd HH:mm:ss}',
-                        '{listing.UpdatedAt:yyyy-MM-dd HH:mm:ss}'
+                        '{listing.CreatedAt:yyyy-MM-dd hh:mm:ss}',
+                        '{listing.UpdatedAt:yyyy-MM-dd hh:mm:ss}'
                         )";
+
 
             using var conn = new MySqlConnection(connString);
             await conn.ExecuteAsync(query);

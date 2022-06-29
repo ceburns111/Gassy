@@ -59,7 +59,7 @@ namespace Gassy.Services
             var query = $@"
                 SELECT *
                 FROM WishlistItem
-                WHERE id = {id}"; 
+                WHERE Id = {id}"; 
             using var conn = new MySqlConnection(connString);
             var item = (await conn.QueryAsync<WishlistItem>(query, CommandType.Text, commandTimeout: 0))
                 .FirstOrDefault();
@@ -72,7 +72,7 @@ namespace Gassy.Services
         public async Task<WishlistItem> CreateWishlistItem(WishlistItem item) {
                var query = $@"
                 INSERT INTO 
-                    WishlistItem 
+                    WishlistItem (
                         Make, 
                         Model,
                         MinPrice,
@@ -85,7 +85,7 @@ namespace Gassy.Services
                         '{item.Model}' , 
                          {item.MinPrice},
                          {item.MaxPrice},
-                        '{DateTime.Now.ToLongDateString()},
+                        '{DateTime.Now:yyyy-MM-dd hh:mm:ss}',
                         '{item.OwnerId}'
                         )";
 
@@ -96,14 +96,14 @@ namespace Gassy.Services
 
         public async  Task<WishlistItem> UpdateWishlistItem(WishlistItem item) {
               var query = $@"
-                UPDATE Listing
+                UPDATE WishlistItem
                 SET  
-                        Make = '{item.Make}'
+                        Make = '{item.Make}',
                         Model = '{item.Model}',
                         MinPrice = {item.MinPrice},
                         MaxPrice = {item.MaxPrice},
-                        UpdatedAt = '{DateTime.Now.ToLongDateString()}',
-                        OwnerId
+                        UpdatedAt = '{DateTime.Now:yyyy-MM-dd hh:mm:ss}',
+                        OwnerId = {item.OwnerId}
                 WHERE Id = '{item.Id}'
             "; 
             using var conn = new MySqlConnection(connString);
