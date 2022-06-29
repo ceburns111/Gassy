@@ -8,7 +8,7 @@ namespace Gassy.Tests;
 
 public class UnitTest1
 {
-    private readonly AgentService _reverbAgentService;
+    private readonly UserService _reverbAgentService;
 
     public UnitTest1()
     {
