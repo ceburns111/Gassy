@@ -7,6 +7,7 @@ namespace Gassy.Entities
         public string Make { get; set; } 
         public string Model { get; set; }
         public decimal MinPrice { get; set; }
-        public decimal MaxPrice { get; set; }        
+        public decimal MaxPrice { get; set; } 
+        public int CategoryId { get;set; }
     }
 }
