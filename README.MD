@@ -1,1 +1,1 @@
-Gassy; My personal api for scraping synthesizer listings from Reverb, Ebay, Craigslist, etc and sending out notifications more frequently and more quickly than any of these services built in 'subscribe/automated search' functions offer.
+Gassy: A tool for actively scraping potential deals on music gear.  This is the API part. Checkout gassyweb_js for the Vue/Javascript frontend. Additionaly, ReverbFunction has the code for my AWS lambda (more to come) populating my database. 
