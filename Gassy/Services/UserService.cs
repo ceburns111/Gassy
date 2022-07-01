@@ -18,7 +18,9 @@ namespace Gassy.Services
         Task<User> GetById(int id);
         Task<IEnumerable<User>> GetAll(); 
 
-        Task<NewUserDTO> AddNewUser(NewUserDTO newUser);
+        Task<UserDTO> AddUser(UserDTO newUser);
+        Task<UserDTO> UpdateUser(UserDTO newUser);
+
     }
 
     public class UserService : IUserService
@@ -85,7 +87,7 @@ namespace Gassy.Services
             return users; 
         }
 
-        public async Task<NewUserDTO> AddNewUser(NewUserDTO newUser) {
+        public async Task<UserDTO> AddUser(UserDTO newUser) {
            
             string query = $@"
              INSERT INTO User(FirstName, LastName, PhoneNumber, Email, UserName, UserPassword)
@@ -99,6 +101,25 @@ namespace Gassy.Services
                 return newUser;
             }
             throw new AppException("AddNewUser error");
+        }
+
+        public async Task<UserDTO> UpdateUser(UserDTO newUser) {
+           
+            string query = $@"
+             UPDATE User
+             SET
+                FirstName = '{newUser.FirstName}',
+                LastName = '{newUser.LastName}',
+                PhoneNumber = '{newUser.PhoneNumber}',
+                Email = '{newUser.Email}',
+                UserName = '{newUser.UserName}',
+                UserPassword = '{newUser.UserPassword}',
+            WHERE Id = {newUser.Id}
+            ";
+    
+            using var conn = new MySqlConnection(connString);
+            await conn.ExecuteAsync(query);
+            return newUser;
         }
     }
 }
