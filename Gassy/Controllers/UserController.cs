@@ -33,6 +33,15 @@ namespace Gassy.Controllers
         }
 
 
+        [AllowAnonymous]
+        [HttpPost("Signup")]
+        public async Task<ActionResult<NewUserDTO>> Signup(NewUserDTO newUser)
+        {
+            var response = await _userService.AddNewUser(newUser);
+            return Ok(response);
+        }
+
+
         [Authorize(RoleId.Admin)]
         [HttpGet("All")]
         public async Task<ActionResult<IEnumerable<User>>> GetAll()

@@ -1,13 +1,8 @@
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+
 using Gassy.Authorization;
 using Gassy.Entities; 
 using Gassy.Models.Users; 
 using Gassy.Models;
-using BCryptNet = BCrypt.Net.BCrypt;
 
 using Gassy.Helpers;
 using System.Data;
@@ -22,6 +17,8 @@ namespace Gassy.Services
         Task<AuthenticateResponse> Authenticate(AuthenticateRequest model);
         Task<User> GetById(int id);
         Task<IEnumerable<User>> GetAll(); 
+
+        Task<NewUserDTO> AddNewUser(NewUserDTO newUser);
     }
 
     public class UserService : IUserService
@@ -56,7 +53,7 @@ namespace Gassy.Services
                     UserName,
                     Email
                 FROM User 
-                WHERE UserName = '{model.UserName}' 
+                WHERE UserName = '{model.UserName}'
                     AND UserPassword = '{model.UserPassword}'
             ";
     
@@ -88,19 +85,20 @@ namespace Gassy.Services
             return users; 
         }
 
-        // public string GenerateJwtToken(User user)
-        // {
-        //     // generate token that is valid for 7 days
-        //     var tokenHandler = new JwtSecurityTokenHandler();
-        //     var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
-        //     var tokenDescriptor = new SecurityTokenDescriptor
-        //     {
-        //         Subject = new ClaimsIdentity(new[] { new Claim("id", user.Id.ToString()) }),
-        //         Expires = DateTime.UtcNow.AddDays(7),
-        //         SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-        //     };
-        //     var token = tokenHandler.CreateToken(tokenDescriptor);
-        //     return tokenHandler.WriteToken(token);
-        // }
+        public async Task<NewUserDTO> AddNewUser(NewUserDTO newUser) {
+           
+            string query = $@"
+             INSERT INTO User(FirstName, LastName, PhoneNumber, Email, UserName, UserPassword)
+                VALUES ('{newUser.FirstName}', '{newUser.LastName}', '{newUser.PhoneNumber}', '{newUser.Email}', '{newUser.UserName}', '{newUser.UserPassword}')
+            ";
+    
+            var connection = new MySqlConnection(connString);
+            
+            var rowsAffected = await connection.ExecuteAsync(query);
+            if (rowsAffected == 1) {
+                return newUser;
+            }
+            throw new AppException("AddNewUser error");
+        }
     }
 }
