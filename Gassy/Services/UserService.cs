@@ -88,10 +88,9 @@ namespace Gassy.Services
         }
 
         public async Task<UserDTO> AddUser(UserDTO newUser) {
-           
             string query = $@"
-             INSERT INTO User(FirstName, LastName, PhoneNumber, Email, UserName, UserPassword)
-                VALUES ('{newUser.FirstName}', '{newUser.LastName}', '{newUser.PhoneNumber}', '{newUser.Email}', '{newUser.UserName}', '{newUser.UserPassword}')
+             INSERT INTO User(FirstName, LastName, PhoneNumber, Email, UserName, UserPassword, RoleId)
+                VALUES ('{newUser.FirstName}', '{newUser.LastName}', '{newUser.PhoneNumber}', '{newUser.Email}', '{newUser.UserName}', '{newUser.UserPassword}', {RoleId.User})
             ";
     
             var connection = new MySqlConnection(connString);
