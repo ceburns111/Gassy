@@ -78,6 +78,7 @@ namespace Gassy.Services
                         MinPrice,
                         MaxPrice,
                         CreatedAt,
+                        CategoryId,
                         OwnerId
                         )
                     Values(
@@ -86,6 +87,7 @@ namespace Gassy.Services
                          {item.MinPrice},
                          {item.MaxPrice},
                         '{DateTime.Now:yyyy-MM-dd hh:mm:ss}',
+                        '{(int)item.Category}',
                         '{item.OwnerId}'
                         )";
 
@@ -102,6 +104,7 @@ namespace Gassy.Services
                         Model = '{item.Model}',
                         MinPrice = {item.MinPrice},
                         MaxPrice = {item.MaxPrice},
+                        CategoryId = {(int)item.Category},
                         UpdatedAt = '{DateTime.Now:yyyy-MM-dd hh:mm:ss}',
                         OwnerId = {item.OwnerId}
                 WHERE Id = '{item.Id}'

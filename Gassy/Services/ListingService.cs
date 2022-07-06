@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using Dapper;
 using System.Linq;
 using MySql.Data.MySqlClient;
+using Gassy.Entities; 
 
 namespace Gassy.Services
 {
@@ -76,6 +77,7 @@ namespace Gassy.Services
                     ItemCondition = '{listing.ItemCondition}',
                     OffersEnabled = {listing.OffersEnabled},
                     Link = '{listing.Link}',
+                    CategoryId = {(int)listing.Category},
                     CreatedAt = '{listing.CreatedAt:yyyy-MM-dd hh:mm:ss}',
                     UpdatedAt = '{listing.UpdatedAt:yyyy-MM-dd hh:mm:ss}'
                 WHERE Id = '{listing.Id}'
@@ -98,8 +100,9 @@ namespace Gassy.Services
                         ItemCondition,
                         OffersEnabled,
                         Link,
+                        CategoryId,
                         CreatedAt,
-                        PublishedAt
+                        UpdatedAt
                         )
                     Values(
                         '{listing.SiteId}', 
@@ -110,6 +113,7 @@ namespace Gassy.Services
                         '{listing.ItemCondition}',
                         {listing.OffersEnabled},
                         '{listing.Link}',
+                        {(int)listing.Category},
                         '{listing.CreatedAt:yyyy-MM-dd hh:mm:ss}',
                         '{listing.UpdatedAt:yyyy-MM-dd hh:mm:ss}'
                         )";
