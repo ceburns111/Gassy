@@ -19,7 +19,11 @@ namespace Gassy.Services
 {
     public interface IUserService
     {
-        Task<AuthenticateResponse> Authenticate(AuthenticateRequest model);
+        Task<AuthenticateResponse> Authenticate(AuthenticateRequest model,  string ipAddress);
+        Task<AuthenticateResponse> RefreshToken(string token, string ipAddress);
+
+        Task RevokeToken(string token, string ipAddress);
+
         Task<User> GetById(int id);
         Task<IEnumerable<User>> GetAll(); 
     }
@@ -30,12 +34,15 @@ namespace Gassy.Services
 
         private IJwtUtils _jwtUtils;
 
+        private AppSettings _appSettings;
+
         private readonly string connString;
 
-        public UserService(IConfiguration configuration, IJwtUtils jwtUtils)
+        public UserService(IConfiguration configuration, IJwtUtils jwtUtils, AppSettings appSettings)
         {
             _configuration = configuration;
             _jwtUtils = jwtUtils; 
+            _appSettings = appSettings;
             var host =  _configuration["ConnectionStrings:DBHOST"] ?? _configuration.GetConnectionString("DBHOST");
             var port =  _configuration["ConnectionStrings:DBPORT"] ?? _configuration.GetConnectionString("DBPORT");
             var password = _configuration["ConnectionStrings:MYSQL_PASSWORD"] ?? _configuration.GetConnectionString("MYSQL_PASSWORD");
@@ -44,7 +51,7 @@ namespace Gassy.Services
             connString = $"Server={host}; Uid={userName}; Pwd={password};Port={port}; Database={db}";
         }
 
-        public async Task<AuthenticateResponse> Authenticate(AuthenticateRequest model)
+        public async Task<AuthenticateResponse> Authenticate(AuthenticateRequest model, string ipAddress)
         {
             Console.WriteLine($"Attempting to authenticate user: {model.UserName}");
             string query = $@"
@@ -65,7 +72,61 @@ namespace Gassy.Services
             Console.WriteLine($"username:{user.UserName}, role: {user.RoleId}");
             if (user == null)
                 throw new AppException("Username or password is incorrect");
-            return new AuthenticateResponse(user,  _jwtUtils.GenerateJwtToken(user));
+            var jwtToken = _jwtUtils.GenerateJwtToken(user);
+            var refreshToken = _jwtUtils.GenerateRefreshToken(ipAddress);
+            user.RefreshTokens.Add(refreshToken);
+            return new AuthenticateResponse(user, jwtToken, refreshToken.Token);
+
+        }
+
+        public async Task<AuthenticateResponse> RefreshToken(string token, string ipAddress)
+        {
+            var user = await GetUserByRefreshToken(token);
+            var refreshToken = user.RefreshTokens.Single(x => x.Token == token);
+
+            if (refreshToken.IsRevoked)
+            {
+                RevokeDescendantRefreshTokens(refreshToken, user, ipAddress, $"Attempted reuse of revoked ancestor token: {token}"); 
+            }
+
+            if (!refreshToken.IsActive)
+                throw new AppException("Invalid token");
+
+            // replace old refresh token with a new one (rotate token)
+            var newRefreshToken = await RotateRefreshToken(refreshToken, ipAddress);
+            user.RefreshTokens.Add(newRefreshToken);
+
+            // remove old refresh tokens from user
+            await RemoveOldRefreshTokens(user);
+
+            // generate new jwt
+            var jwtToken = _jwtUtils.GenerateJwtToken(user);
+
+            return new AuthenticateResponse(user, jwtToken, newRefreshToken.Token);
+        }
+
+        public async Task RevokeToken(string token, string ipAddress)
+        {
+            var user = await GetUserByRefreshToken(token);
+            var refreshToken = user.RefreshTokens.Single(x => x.Token == token);
+
+            if (!refreshToken.IsActive)
+                throw new AppException("Invalid token");
+
+            // revoke token and save
+            var updatedToken = RevokeRefreshToken(refreshToken.Token, ipAddress, "Revoked without replacement");
+            //Add dapper query to update RefreshToken table 
+        }
+      
+
+        private Task<User> GetUserByRefreshToken(string token)
+        {
+            throw new NotImplementedException();
+        }
+
+        private Task<RefreshToken> RotateRefreshToken(RefreshToken refreshToken, string ipAddress)
+        {
+            throw new NotImplementedException(); 
         }
 
         public async Task<User> GetById(int id)
@@ -88,19 +149,74 @@ namespace Gassy.Services
             return users; 
         }
 
-        // public string GenerateJwtToken(User user)
-        // {
-        //     // generate token that is valid for 7 days
-        //     var tokenHandler = new JwtSecurityTokenHandler();
-        //     var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
-        //     var tokenDescriptor = new SecurityTokenDescriptor
-        //     {
-        //         Subject = new ClaimsIdentity(new[] { new Claim("id", user.Id.ToString()) }),
-        //         Expires = DateTime.UtcNow.AddDays(7),
-        //         SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-        //     };
-        //     var token = tokenHandler.CreateToken(tokenDescriptor);
-        //     return tokenHandler.WriteToken(token);
-        // }
+        private async Task RemoveOldRefreshTokens(User user)
+        { 
+            var query = $@" 
+                DELETE FROM 
+                    RefreshToken 
+                WHERE UserId = {user.Id}
+                    AND Revoked != NULL
+                    AND '{_appSettings.RefreshTokenTTL:yyyy-MM-dd hh:mm:ss}'  <= '{DateTime.UtcNow:yyyy-MM-dd hh:mm:ss}'";
+                var connection = new MySqlConnection(connString);
+                await connection.ExecuteAsync(query);
+        }
+  
+
+        private async Task RevokeDescendantRefreshTokens(RefreshToken refreshToken, User user, string ipAddress, string reason)
+        {
+            if(!string.IsNullOrEmpty(refreshToken.ReplacedByToken))
+            {
+                var childTokens = await GetTokenChildren(refreshToken.Token);
+                foreach (var child in childTokens) {
+                    await RevokeRefreshToken(child.Token, ipAddress, reason);
+                }
+            }
+        }
+
+        //Recursively get children
+        private async Task<IEnumerable<RefreshToken>> GetTokenChildren(string parentToken) {
+            var query = $@"USE gassydb;
+                            WITH RECURSIVE cte (Id, UserId, Token, ReplacedbyToken) AS (
+                            SELECT	Id,
+                                        UserId,
+                                        Token,
+                                        ReplacedByToken
+                            FROM      RefreshToken
+                            WHERE     Token = '{parentToken}'
+                            UNION ALL
+                            
+                            SELECT 	r.Id,
+                                        r.UserId,
+                                        r.Token,
+                                        r.ReplacedByToken
+                            FROM      RefreshToken r
+                            INNER JOIN cte
+                                ON r.Token = cte.ReplacedByToken
+                            )
+                            SELECT Id, Token, ReplacedByToken FROM cte";
+
+            var connection = new MySqlConnection(connString);
+            var children = await connection.QueryAsync<RefreshToken>(query, CommandType.Text, commandTimeout: 0);
+            return children; 
+        }
+
+         
+
+         private async Task RevokeRefreshToken(string token, string ipAddress, string reason = null, string replacedByToken = null)
+        {
+            var query = $@"USE gassydb;
+                UPDATE RefreshToken
+                SET
+                    Revoked = '{DateTime.UtcNow:yyyy-MM-dd hh:mm:ss}',
+                    RevokedByIp = '{ipAddress}',
+                    ReasonRevoked = '{reason}',
+                    ReplacedByToken = '{replacedByToken}'
+                WHERE 
+                    Token = '{token}'
+                    ";
+
+            var connection = new MySqlConnection(connString);
+            await connection.ExecuteAsync(query);
+        }
     }
 }

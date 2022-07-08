@@ -1,3 +1,6 @@
+using System.Text.Json.Serialization;
+using System.Collections.Generic;
+
 namespace Gassy.Entities; 
 
 public class User
@@ -7,6 +10,13 @@ public class User
     public string LastName { get; set;}
     public string Email { get; set; }
     public string UserName { get; set; }
-    public string UserPassword { get; set; }
+    
+    [JsonIgnore]
+    public string PasswordHash { get; set; }
+    
     public RoleId RoleId { get; set; }
+
+   
+    [JsonIgnore]
+    public List<RefreshToken> RefreshTokens { get; set; }
 }
