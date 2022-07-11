@@ -34,15 +34,15 @@ namespace Gassy.Services
 
         private IJwtUtils _jwtUtils;
 
-        private AppSettings _appSettings;
+        private readonly AppSettings _appSettings;
 
         private readonly string connString;
 
-        public UserService(IConfiguration configuration, IJwtUtils jwtUtils, AppSettings appSettings)
+        public UserService(IConfiguration configuration, IJwtUtils jwtUtils, IOptions<AppSettings> appSettings)
         {
             _configuration = configuration;
             _jwtUtils = jwtUtils; 
-            _appSettings = appSettings;
+            _appSettings = appSettings.Value;
             var host =  _configuration["ConnectionStrings:DBHOST"] ?? _configuration.GetConnectionString("DBHOST");
             var port =  _configuration["ConnectionStrings:DBPORT"] ?? _configuration.GetConnectionString("DBPORT");
             var password = _configuration["ConnectionStrings:MYSQL_PASSWORD"] ?? _configuration.GetConnectionString("MYSQL_PASSWORD");
@@ -74,7 +74,21 @@ namespace Gassy.Services
                 throw new AppException("Username or password is incorrect");
             var jwtToken = _jwtUtils.GenerateJwtToken(user);
             var refreshToken = _jwtUtils.GenerateRefreshToken(ipAddress);
+            Console.WriteLine($"JWT Token: {jwtToken}");
+            Console.WriteLine($"Refresh Token: {refreshToken.Token}");
+
+            
+            await RemoveOldRefreshTokens(user);
+
+            //Add the new token to database 
+            //
+            //
+
+            //Add the new token the user.RefreshTokens;
+            if (user.RefreshTokens == null) 
+                user.RefreshTokens = new List<RefreshToken>();
             user.RefreshTokens.Add(refreshToken);
+
             return new AuthenticateResponse(user, jwtToken, refreshToken.Token);
 
         }
@@ -86,7 +100,7 @@ namespace Gassy.Services
 
             if (refreshToken.IsRevoked)
             {
-                RevokeDescendantRefreshTokens(refreshToken, user, ipAddress, $"Attempted reuse of revoked ancestor token: {token}"); 
+                await RevokeDescendantRefreshTokens(refreshToken, user, ipAddress, $"Attempted reuse of revoked ancestor token: {token}"); 
             }
 
             if (!refreshToken.IsActive)
@@ -117,17 +131,6 @@ namespace Gassy.Services
             var updatedToken = RevokeRefreshToken(refreshToken.Token, ipAddress, "Revoked without replacement");
             //Add dapper query to update RefreshToken table 
         }
-      
-
-        private Task<User> GetUserByRefreshToken(string token)
-        {
-            throw new NotImplementedException();
-        }
-
-        private Task<RefreshToken> RotateRefreshToken(RefreshToken refreshToken, string ipAddress)
-        {
-            throw new NotImplementedException(); 
-        }
 
         public async Task<User> GetById(int id)
         {
@@ -149,6 +152,29 @@ namespace Gassy.Services
             return users; 
         }
 
+        private async Task<User> GetUserByRefreshToken(string token)
+        {
+            var query = $@"SELECT * 
+                            FROM User AS u
+                            INNER JOIN RefreshToken AS r
+                                ON u.Id = r.UserId;";
+
+            var connection = new MySqlConnection(connString);
+            var user = (await connection.QueryAsync<User>(query, CommandType.Text, commandTimeout: 0)).FirstOrDefault();
+            if (user == null)
+                throw new KeyNotFoundException("User not found");
+            return user;
+        }
+
+//Helper methods
+        private async Task<RefreshToken> RotateRefreshToken(RefreshToken refreshToken, string ipAddress)
+        {
+            var newRefreshToken = _jwtUtils.GenerateRefreshToken(ipAddress);
+            await RevokeRefreshToken(refreshToken.Token, refreshToken.CreatedByIp, "Replaced by new token", newRefreshToken.Token);
+            return newRefreshToken;
+        }
+
+
         private async Task RemoveOldRefreshTokens(User user)
         { 
             var query = $@" 
@@ -156,12 +182,12 @@ namespace Gassy.Services
                     RefreshToken 
                 WHERE UserId = {user.Id}
                     AND Revoked != NULL
-                    AND '{_appSettings.RefreshTokenTTL:yyyy-MM-dd hh:mm:ss}'  <= '{DateTime.UtcNow:yyyy-MM-dd hh:mm:ss}'";
-                var connection = new MySqlConnection(connString);
-                await connection.ExecuteAsync(query);
+                    AND DATE_ADD(Created, INTERVAL {_appSettings.RefreshTokenTTL} DAY)  <= '{DateTime.UtcNow:yyyy-MM-dd hh:mm:ss}'";
+                    
+            var connection = new MySqlConnection(connString);
+            await connection.ExecuteAsync(query);
         }
   
-
         private async Task RevokeDescendantRefreshTokens(RefreshToken refreshToken, User user, string ipAddress, string reason)
         {
             if(!string.IsNullOrEmpty(refreshToken.ReplacedByToken))
@@ -200,9 +226,7 @@ namespace Gassy.Services
             return children; 
         }
 
-         
-
-         private async Task RevokeRefreshToken(string token, string ipAddress, string reason = null, string replacedByToken = null)
+        private async Task RevokeRefreshToken(string token, string ipAddress, string reason = null, string replacedByToken = null)
         {
             var query = $@"USE gassydb;
                 UPDATE RefreshToken
