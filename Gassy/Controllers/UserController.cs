@@ -60,30 +60,7 @@ namespace Gassy.Controllers
             return Ok(refreshTokens);
         }
 
-        // helper methods
-
-        private void SetTokenCookie(string token)
-        {
-            // append cookie with refresh token to the http response
-            var cookieOptions = new CookieOptions
-            {
-                HttpOnly = true,
-                Expires = DateTime.UtcNow.AddDays(7)
-            };
-            Response.Cookies.Append("refreshToken", token, cookieOptions);
-        }
-
-        private string IpAddress()
-        {
-            // get source ip address for the current request
-            if (Request.Headers.ContainsKey("X-Forwarded-For"))
-                return Request.Headers["X-Forwarded-For"];
-            else
-                return HttpContext.Connection.RemoteIpAddress.MapToIPv4().ToString();
-        }
-
-
-        [AllowAnonymous]
+           [AllowAnonymous]
         [HttpPost("Signup")]
         public async Task<ActionResult<UserDTO>> Signup(UserDTO newUser)
         {
@@ -121,5 +98,30 @@ namespace Gassy.Controllers
             var user =  _userService.GetById(id);
             return Ok(user);
         }
+
+        // helper methods
+
+        private void SetTokenCookie(string token)
+        {
+            // append cookie with refresh token to the http response
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Expires = DateTime.UtcNow.AddDays(7)
+            };
+            Response.Cookies.Append("refreshToken", token, cookieOptions);
+        }
+
+        private string IpAddress()
+        {
+            // get source ip address for the current request
+            if (Request.Headers.ContainsKey("X-Forwarded-For"))
+                return Request.Headers["X-Forwarded-For"];
+            else
+                return HttpContext.Connection.RemoteIpAddress.MapToIPv4().ToString();
+        }
+
+
+     
     }
 }
