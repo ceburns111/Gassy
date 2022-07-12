@@ -19,10 +19,11 @@ namespace Gassy.Authorization
             _appSettings = appSettings.Value;
         }
 
-        public async Task Invoke(HttpContext context, IUserService userService)
+        public async Task Invoke(HttpContext context, IUserService userService, IJwtUtils jwtUtils)
         {
             Console.WriteLine("Invoking...");
             var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            var userId = jwtUtils.ValidateJwtToken(token);
             if (token != null)
                 await AttachUserToContext(context, userService, token);
             await _next(context);

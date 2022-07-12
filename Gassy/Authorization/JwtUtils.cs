@@ -4,6 +4,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Gassy.Helpers;
+using System.Security.Claims;
+using System.Security.Cryptography;
 using Gassy.Entities; 
 
 namespace Gassy.Authorization 
@@ -12,6 +14,8 @@ namespace Gassy.Authorization
     {
         public string GenerateJwtToken(User user);
         public int? ValidateJwtToken(string token);
+        public RefreshToken GenerateRefreshToken(string ipAddress);
+
     }
 
     public class JwtUtils : IJwtUtils
@@ -31,7 +35,7 @@ namespace Gassy.Authorization
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[] { new Claim("Id", user.Id.ToString()) }),
-                Expires = DateTime.UtcNow.AddDays(7),
+                Expires = DateTime.UtcNow.AddDays(15),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
@@ -68,6 +72,23 @@ namespace Gassy.Authorization
                 // return null if validation fails
                 return null;
             }
+        }
+
+        public RefreshToken GenerateRefreshToken(string ipAddress)
+        {
+            // generate token that is valid for 7 days
+            using var rngCryptoServiceProvider = new RNGCryptoServiceProvider();
+            var randomBytes = new byte[64];
+            rngCryptoServiceProvider.GetBytes(randomBytes);
+            var refreshToken = new RefreshToken
+            {
+                Token = Convert.ToBase64String(randomBytes),
+                Expires = DateTime.UtcNow.AddDays(7),
+                Created = DateTime.UtcNow,
+                CreatedByIp = ipAddress
+            };
+
+            return refreshToken;
         }
     }
     

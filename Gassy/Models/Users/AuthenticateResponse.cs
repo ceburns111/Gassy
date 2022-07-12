@@ -1,4 +1,6 @@
 using Gassy.Entities; 
+using System.Text.Json.Serialization;
+
 
 namespace Gassy.Models.Users
 {
@@ -13,7 +15,10 @@ namespace Gassy.Models.Users
         public RoleId Role { get; set; }
         public string Token { get; set; }
 
-        public AuthenticateResponse(User user, string token)
+        [JsonIgnore] 
+        public string RefreshToken { get; set; }
+
+        public AuthenticateResponse(User user, string token, string refreshToken)
         {
             Id = user.Id; 
             FirstName = user.FirstName;
@@ -22,6 +27,7 @@ namespace Gassy.Models.Users
             Role = user.RoleId;
             Email = user.Email;
             Token = token;
+            RefreshToken = refreshToken; 
         }
     }
 }

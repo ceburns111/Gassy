@@ -6,8 +6,10 @@ CREATE TABLE gassydb.User (
     PhoneNumber VARCHAR(20),
     UserName VARCHAR(25), 
     UserPassword VARCHAR(15),
-    RoleId INT
-    );
+    RoleId INT,
+    UNIQUE(Id),
+    INDEX(Id)
+);
 
 
 

@@ -15,11 +15,13 @@ var builder = WebApplication.CreateBuilder(args);
     builder.Services.AddControllers().AddJsonOptions(x => {
         x.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); 
     });
+    
     builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
+
     services.AddScoped<IJwtUtils, JwtUtils>();
-    builder.Services.AddScoped<IUserService, UserService>();
-    builder.Services.AddScoped<IListingService, ListingService>();
-    builder.Services.AddScoped<IWishlistService, WishlistService>();
+    services.AddScoped<IUserService, UserService>();
+    services.AddScoped<IListingService, ListingService>();
+    services.AddScoped<IWishlistService, WishlistService>();
 }
 
 var app = builder.Build();
