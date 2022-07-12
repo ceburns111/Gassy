@@ -1,4 +1,4 @@
-
+using Microsoft.Extensions.Options;
 using Gassy.Authorization;
 using Gassy.Entities; 
 using Gassy.Models.Users; 
@@ -125,16 +125,14 @@ namespace Gassy.Services
             return new AuthenticateResponse(user, jwtToken, newRefreshToken.Token);
         }
 
-        public async Task RevokeToken(string token, string ipAddress)
+        public async Task RevokeToken(string tokenStr, string ipAddress)
         {
-            var user = await GetUserByRefreshToken(token);
-            var refreshToken = user.RefreshTokens.Single(x => x.Token == token);
+            var token = await GetRefreshTokenByTokenStr(tokenStr);
 
-            if (!refreshToken.IsActive)
+            if (!token.IsActive)
                 throw new AppException("Invalid token");
 
-            // revoke token and save
-            var updatedToken = RevokeRefreshToken(refreshToken.Token, ipAddress, "Revoked without replacement");
+            await RevokeRefreshToken(token.Token, ipAddress, "Revoked without replacement");
             //Add dapper query to update RefreshToken table 
         }
 
@@ -191,7 +189,6 @@ namespace Gassy.Services
             return newRefreshToken;
         }
 
-
         private async Task RemoveExpiredRefreshTokens(User user)
         { 
             var query = $@" 
@@ -204,7 +201,6 @@ namespace Gassy.Services
             var connection = new MySqlConnection(connString);
             await connection.ExecuteAsync(query);
         }
-
 
         private async Task<RefreshToken> GetRefreshTokenByTokenStr(string token)
         { 
