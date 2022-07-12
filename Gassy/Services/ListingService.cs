@@ -70,6 +70,7 @@ namespace Gassy.Services
             var query = $@"
                 UPDATE Listing
                 SET  
+                    CategoryId = {listing.CategoryId},
                     Make = '{listing.Make}', 
                     Model = '{listing.Model}',
                     Price = '{listing.Price}',
@@ -93,6 +94,7 @@ namespace Gassy.Services
                 INSERT INTO 
                     Listing (
                         SiteId, 
+                        CategoryId,
                         Make, 
                         Model,
                         Price,
@@ -106,6 +108,7 @@ namespace Gassy.Services
                         )
                     Values(
                         '{listing.SiteId}', 
+                        {listing.CategoryId},
                         '{listing.Make}', 
                         '{listing.Model}' , 
                         {listing.Price},
@@ -117,6 +120,10 @@ namespace Gassy.Services
                         '{listing.CreatedAt:yyyy-MM-dd hh:mm:ss}',
                         '{listing.UpdatedAt:yyyy-MM-dd hh:mm:ss}'
                         )";
+
+
+
+
 
 
             using var conn = new MySqlConnection(connString);

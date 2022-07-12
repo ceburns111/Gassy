@@ -1,6 +1,7 @@
 CREATE TABLE gassydb.Listing (
 Id int UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-SiteId VARCHAR(100),
+SiteId int,
+CategoryId int,
 Make VARCHAR(30), 
 Model VARCHAR(30), 
 ItemDescription VARCHAR(250),

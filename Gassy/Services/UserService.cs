@@ -1,13 +1,8 @@
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+
 using Gassy.Authorization;
 using Gassy.Entities; 
 using Gassy.Models.Users; 
 using Gassy.Models;
-using BCryptNet = BCrypt.Net.BCrypt;
 
 using Gassy.Helpers;
 using System.Data;
@@ -28,6 +23,10 @@ namespace Gassy.Services
 
         Task<User> GetById(int id);
         Task<IEnumerable<User>> GetAll(); 
+
+        Task<UserDTO> AddUser(UserDTO newUser);
+        Task<UserDTO> UpdateUser(UserDTO newUser);
+
     }
 
     public class UserService : IUserService
@@ -65,7 +64,7 @@ namespace Gassy.Services
                     UserName,
                     Email
                 FROM User 
-                WHERE UserName = '{model.UserName}' 
+                WHERE UserName = '{model.UserName}'
                     AND UserPassword = '{model.UserPassword}'
             ";
     
@@ -292,6 +291,41 @@ namespace Gassy.Services
 
             var connection = new MySqlConnection(connString);
             await connection.ExecuteAsync(query);
+        }
+        
+        public async Task<UserDTO> AddUser(UserDTO newUser) {
+            string query = $@"
+             INSERT INTO User(FirstName, LastName, PhoneNumber, Email, UserName, UserPassword, RoleId)
+                VALUES ('{newUser.FirstName}', '{newUser.LastName}', '{newUser.PhoneNumber}'
+                , '{newUser.Email}', '{newUser.UserName}', '{newUser.UserPassword}', 1)
+            ";
+    
+            var connection = new MySqlConnection(connString);
+            
+            var rowsAffected = await connection.ExecuteAsync(query);
+            if (rowsAffected == 1) {
+                return newUser;
+            }
+            throw new AppException("AddNewUser error");
+        }
+
+        public async Task<UserDTO> UpdateUser(UserDTO newUser) {
+           
+            string query = $@"
+             UPDATE User
+             SET
+                FirstName = '{newUser.FirstName}',
+                LastName = '{newUser.LastName}',
+                PhoneNumber = '{newUser.PhoneNumber}',
+                Email = '{newUser.Email}',
+                UserName = '{newUser.UserName}',
+                UserPassword = '{newUser.UserPassword}',
+            WHERE Id = {newUser.Id}
+            ";
+    
+            using var conn = new MySqlConnection(connString);
+            await conn.ExecuteAsync(query);
+            return newUser;
         }
     }
 }
