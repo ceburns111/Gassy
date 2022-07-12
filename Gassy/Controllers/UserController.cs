@@ -31,8 +31,9 @@ namespace Gassy.Controllers
 
         [AllowAnonymous]
         [HttpPost("Refresh-Token")]
-        public async Task<IActionResult> RefreshToken()
+        public async Task<ActionResult<AuthenticateResponse>> RefreshToken()
         {
+            
             var refreshToken = Request.Cookies["refreshToken"];
             var response = await _userService.RefreshToken(refreshToken, IpAddress());
             SetTokenCookie(response.RefreshToken);
@@ -52,10 +53,11 @@ namespace Gassy.Controllers
         }
         
         [HttpGet("{id}/Refresh-Tokens")]
-        public async Task<IActionResult> GetRefreshTokens(int id)
+        public async Task<ActionResult<IEnumerable<RefreshToken>>> GetRefreshTokens(int id)
         {
-            var user = await _userService.GetById(id);
-            return Ok(user.RefreshTokens);
+            Console.WriteLine("Getting refresh tokens");
+            var refreshTokens = await _userService.GetRefreshTokensByUserId(id);
+            return Ok(refreshTokens);
         }
 
         // helper methods

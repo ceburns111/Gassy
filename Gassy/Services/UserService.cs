@@ -21,7 +21,9 @@ namespace Gassy.Services
     {
         Task<AuthenticateResponse> Authenticate(AuthenticateRequest model,  string ipAddress);
         Task<AuthenticateResponse> RefreshToken(string token, string ipAddress);
-
+        
+        Task<IEnumerable<RefreshToken>> GetRefreshTokensByUserId(int userId);
+        
         Task RevokeToken(string token, string ipAddress);
 
         Task<User> GetById(int id);
@@ -78,10 +80,10 @@ namespace Gassy.Services
             Console.WriteLine($"Refresh Token: {refreshToken.Token}");
 
             
-            await RemoveOldRefreshTokens(user);
+            await RemoveExpiredRefreshTokens(user);
 
             //Add the new token to database 
-            //
+            await AddNewRefreshToken(refreshToken, user.Id);
             //
 
             //Add the new token the user.RefreshTokens;
@@ -93,26 +95,31 @@ namespace Gassy.Services
 
         }
 
-        public async Task<AuthenticateResponse> RefreshToken(string token, string ipAddress)
+        public async Task<AuthenticateResponse> RefreshToken(string tokenStr, string ipAddress)
         {
-            var user = await GetUserByRefreshToken(token);
-            var refreshToken = user.RefreshTokens.Single(x => x.Token == token);
+            Console.WriteLine($"Refreshing Token...");
+            Console.WriteLine($"Token: {tokenStr}");
+            Console.WriteLine($"Ip Address: {ipAddress}");
+            var refreshToken = await GetRefreshTokenByTokenStr(tokenStr);
+            var user = await GetUserByRefreshToken(tokenStr);
 
             if (refreshToken.IsRevoked)
             {
-                await RevokeDescendantRefreshTokens(refreshToken, user, ipAddress, $"Attempted reuse of revoked ancestor token: {token}"); 
+                await RevokeDescendantRefreshTokens(refreshToken, ipAddress, $"Attempted reuse of revoked ancestor token: {tokenStr}"); 
             }
 
             if (!refreshToken.IsActive)
                 throw new AppException("Invalid token");
 
+            Console.WriteLine("Rotating refresh tokens...");
+
             // replace old refresh token with a new one (rotate token)
             var newRefreshToken = await RotateRefreshToken(refreshToken, ipAddress);
-            user.RefreshTokens.Add(newRefreshToken);
 
             // remove old refresh tokens from user
-            await RemoveOldRefreshTokens(user);
+            await RemoveExpiredRefreshTokens(user); //this 
 
+            Console.WriteLine("Generating new JWT Token...");
             // generate new jwt
             var jwtToken = _jwtUtils.GenerateJwtToken(user);
 
@@ -142,6 +149,16 @@ namespace Gassy.Services
             return user; 
         }
 
+        public async Task<IEnumerable<RefreshToken>> GetRefreshTokensByUserId(int userId)
+        {
+            string query = $"SELECT * FROM RefreshToken WHERE UserId = {userId}";
+            using var connection = new MySqlConnection(connString);
+            var refreshTokens = await connection.QueryAsync<RefreshToken>(query, CommandType.Text, commandTimeout: 0);
+            if (refreshTokens == null) 
+                throw new KeyNotFoundException($"No refresh tokens found for {userId}");
+            return refreshTokens; 
+        }
+
         public async Task<IEnumerable<User>> GetAll() 
         {
             var query = $"SELECT * FROM User";
@@ -157,7 +174,8 @@ namespace Gassy.Services
             var query = $@"SELECT * 
                             FROM User AS u
                             INNER JOIN RefreshToken AS r
-                                ON u.Id = r.UserId;";
+                                ON u.Id = r.UserId
+                            WHERE r.Token = '{token}';";
 
             var connection = new MySqlConnection(connString);
             var user = (await connection.QueryAsync<User>(query, CommandType.Text, commandTimeout: 0)).FirstOrDefault();
@@ -166,16 +184,16 @@ namespace Gassy.Services
             return user;
         }
 
-//Helper methods
         private async Task<RefreshToken> RotateRefreshToken(RefreshToken refreshToken, string ipAddress)
         {
             var newRefreshToken = _jwtUtils.GenerateRefreshToken(ipAddress);
             await RevokeRefreshToken(refreshToken.Token, refreshToken.CreatedByIp, "Replaced by new token", newRefreshToken.Token);
+            await AddNewRefreshToken(newRefreshToken, refreshToken.UserId);
             return newRefreshToken;
         }
 
 
-        private async Task RemoveOldRefreshTokens(User user)
+        private async Task RemoveExpiredRefreshTokens(User user)
         { 
             var query = $@" 
                 DELETE FROM 
@@ -187,9 +205,21 @@ namespace Gassy.Services
             var connection = new MySqlConnection(connString);
             await connection.ExecuteAsync(query);
         }
+
+
+        private async Task<RefreshToken> GetRefreshTokenByTokenStr(string token)
+        { 
+            string query = $"SELECT * FROM RefreshToken WHERE Token = '{token}'";
+            using var connection = new MySqlConnection(connString);
+            var refreshToken = (await connection.QueryAsync<RefreshToken>(query, CommandType.Text, commandTimeout: 0)).FirstOrDefault();
+            if (refreshToken == null) 
+                throw new KeyNotFoundException($"No refresh token found for Token: {token}");
+            return refreshToken;
+        }
   
-        private async Task RevokeDescendantRefreshTokens(RefreshToken refreshToken, User user, string ipAddress, string reason)
+        private async Task RevokeDescendantRefreshTokens(RefreshToken refreshToken, string ipAddress, string reason)
         {
+            Console.WriteLine("Revoking Descendants");
             if(!string.IsNullOrEmpty(refreshToken.ReplacedByToken))
             {
                 var childTokens = await GetTokenChildren(refreshToken.Token);
@@ -199,9 +229,30 @@ namespace Gassy.Services
             }
         }
 
+        private async Task AddNewRefreshToken(RefreshToken token, int userId) {
+               var query = $@"
+                            INSERT INTO RefreshToken(
+                                Token, 
+                                UserId, 
+                                Expires, 
+                                Created, 
+                                CreatedByIp
+                            )
+                            VALUES (
+                                '{token.Token}',
+                                 {userId},
+                                '{token.Expires:yyyy-MM-dd hh:mm:ss}',
+                                '{token.Created:yyyy-MM-dd hh:mm:ss}',
+                                '{token.CreatedByIp}'
+                            )";
+
+            var connection = new MySqlConnection(connString);
+            await connection.ExecuteAsync(query);
+        }
+
         //Recursively get children
         private async Task<IEnumerable<RefreshToken>> GetTokenChildren(string parentToken) {
-            var query = $@"USE gassydb;
+            var query = $@"
                             WITH RECURSIVE cte (Id, UserId, Token, ReplacedbyToken) AS (
                             SELECT	Id,
                                         UserId,
@@ -228,7 +279,7 @@ namespace Gassy.Services
 
         private async Task RevokeRefreshToken(string token, string ipAddress, string reason = null, string replacedByToken = null)
         {
-            var query = $@"USE gassydb;
+            var query = $@"
                 UPDATE RefreshToken
                 SET
                     Revoked = '{DateTime.UtcNow:yyyy-MM-dd hh:mm:ss}',
