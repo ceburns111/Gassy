@@ -31,7 +31,7 @@ namespace Gassy.Controllers
 
         [AllowAnonymous]
         [HttpPost("Refresh-Token")]
-        public async Task<ActionResult<AuthenticateResponse>> RefreshToken()
+        public async Task<IActionResult> RefreshToken()
         {
             
             var refreshToken = Request.Cookies["refreshToken"];
