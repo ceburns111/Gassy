@@ -35,7 +35,7 @@ namespace Gassy.Authorization
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[] { new Claim("Id", user.Id.ToString()) }),
-                Expires = DateTime.UtcNow.AddDays(15),
+                Expires = DateTime.UtcNow.AddMinutes(1), //replace with 15 after test
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);

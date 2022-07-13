@@ -33,7 +33,7 @@ namespace Gassy.Services
     {
         private readonly IConfiguration _configuration;
 
-        private IJwtUtils _jwtUtils;
+        private readonly IJwtUtils _jwtUtils;
 
         private readonly AppSettings _appSettings;
 
@@ -73,23 +73,18 @@ namespace Gassy.Services
             Console.WriteLine($"username:{user.UserName}, role: {user.RoleId}");
             if (user == null)
                 throw new AppException("Username or password is incorrect");
+
             var jwtToken = _jwtUtils.GenerateJwtToken(user);
             var refreshToken = _jwtUtils.GenerateRefreshToken(ipAddress);
+            
             Console.WriteLine($"JWT Token: {jwtToken}");
             Console.WriteLine($"Refresh Token: {refreshToken.Token}");
 
-            
             await RemoveExpiredRefreshTokens(user);
 
             //Add the new token to database 
             await AddNewRefreshToken(refreshToken, user.Id);
-            //
-
-            //Add the new token the user.RefreshTokens;
-            if (user.RefreshTokens == null) 
-                user.RefreshTokens = new List<RefreshToken>();
-            user.RefreshTokens.Add(refreshToken);
-
+           
             return new AuthenticateResponse(user, jwtToken, refreshToken.Token);
 
         }
@@ -100,10 +95,13 @@ namespace Gassy.Services
             Console.WriteLine($"Token: {tokenStr}");
             Console.WriteLine($"Ip Address: {ipAddress}");
             var refreshToken = await GetRefreshTokenByTokenStr(tokenStr);
+            Console.WriteLine($"Refresh Token: {refreshToken.Token}");
             var user = await GetUserByRefreshToken(tokenStr);
+            Console.WriteLine($"User ID: {user.Id}");
 
             if (refreshToken.IsRevoked)
             {
+                Console.WriteLine("Refresh token is revoked, removing all decedant tokens");
                 await RevokeDescendantRefreshTokens(refreshToken, ipAddress, $"Attempted reuse of revoked ancestor token: {tokenStr}"); 
             }
 
@@ -114,8 +112,8 @@ namespace Gassy.Services
 
             // replace old refresh token with a new one (rotate token)
             var newRefreshToken = await RotateRefreshToken(refreshToken, ipAddress);
-
-            // remove old refresh tokens from user
+            Console.WriteLine($"New Refresh Token: {newRefreshToken}");
+            //remove old refresh tokens from user
             await RemoveExpiredRefreshTokens(user); //this 
 
             Console.WriteLine("Generating new JWT Token...");
@@ -168,7 +166,13 @@ namespace Gassy.Services
 
         private async Task<User> GetUserByRefreshToken(string token)
         {
-            var query = $@"SELECT * 
+            var query = $@"SELECT 
+                                u.Id,
+                                u.FirstName,
+                                u.LastName,
+                                u.Email,
+                                u.UserName,
+                                u.RoleId
                             FROM User AS u
                             INNER JOIN RefreshToken AS r
                                 ON u.Id = r.UserId
