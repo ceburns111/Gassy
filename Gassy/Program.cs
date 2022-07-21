@@ -26,13 +26,14 @@ var builder = WebApplication.CreateBuilder(args);
 
 var app = builder.Build();
 
-{
-    app.UseCors(x => x
-        .AllowAnyOrigin()
-        .AllowAnyMethod()
-        .AllowAnyHeader());
+{       app.UseCors(x => x
+            .SetIsOriginAllowed(origin => true)
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials()
+);
 
-    
+  
     app.UseMiddleware<ErrorHandlerMiddleware>(); 
     app.UseMiddleware<JwtMiddleware>();
     app.MapControllers();
