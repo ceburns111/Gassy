@@ -212,7 +212,7 @@ namespace Gassy.Services
             using var connection = new MySqlConnection(connString);
             var refreshToken = (await connection.QueryAsync<RefreshToken>(query, CommandType.Text, commandTimeout: 0)).FirstOrDefault();
             if (refreshToken == null) 
-                throw new KeyNotFoundException($"No refresh token found for Token: {token}");
+                throw new KeyNotFoundException($"No refresh token found for Refresh Token: {token}");
             return refreshToken;
         }
   

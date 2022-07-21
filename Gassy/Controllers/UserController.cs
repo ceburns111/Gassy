@@ -33,11 +33,16 @@ namespace Gassy.Controllers
         [HttpPost("Refresh-Token")]
         public async Task<IActionResult> RefreshToken()
         {
-            
-            var refreshToken = Request.Cookies["refreshToken"];
-            var response = await _userService.RefreshToken(refreshToken, IpAddress());
-            SetTokenCookie(response.RefreshToken);
-            return Ok(response);
+            try {
+                var refreshToken = Request.Cookies["refreshToken"];
+                var response = await _userService.RefreshToken(refreshToken, IpAddress());
+                SetTokenCookie(response.RefreshToken);
+                return Ok(response);
+            }
+            catch(Exception ex) {
+                Console.WriteLine($"Error: {ex.Message}");
+                throw;
+            }
         }
 
         [HttpPost("Revoke-Token")]
@@ -60,7 +65,7 @@ namespace Gassy.Controllers
             return Ok(refreshTokens);
         }
 
-           [AllowAnonymous]
+        [AllowAnonymous]
         [HttpPost("Signup")]
         public async Task<ActionResult<UserDTO>> Signup(UserDTO newUser)
         {
@@ -106,7 +111,7 @@ namespace Gassy.Controllers
             // append cookie with refresh token to the http response
             var cookieOptions = new CookieOptions
             {
-                HttpOnly = true,
+                HttpOnly = false,
                 Expires = DateTime.UtcNow.AddDays(7)
             };
             Response.Cookies.Append("refreshToken", token, cookieOptions);
