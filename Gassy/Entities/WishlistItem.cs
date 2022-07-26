@@ -6,11 +6,8 @@ namespace Gassy.Entities
         public int OwnerId { get;set; }
         public string Make { get; set; } 
         public string Model { get; set; }
-
         public Category Category { get; set;}
-
         public decimal MinPrice { get; set; }
         public decimal MaxPrice { get; set; } 
-        public int CategoryId { get;set; }
     }
 }
