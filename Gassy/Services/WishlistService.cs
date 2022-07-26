@@ -87,8 +87,8 @@ namespace Gassy.Services
                          {item.MinPrice},
                          {item.MaxPrice},
                         '{DateTime.Now:yyyy-MM-dd hh:mm:ss}',
-                        '{(int)item.Category}',
-                        '{item.OwnerId}'
+                         {(int)item.Category},
+                         {item.OwnerId}
                         )";
 
             using var conn = new MySqlConnection(connString);
@@ -106,8 +106,8 @@ namespace Gassy.Services
                         MaxPrice = {item.MaxPrice},
                         CategoryId = {(int)item.Category},
                         UpdatedAt = '{DateTime.Now:yyyy-MM-dd hh:mm:ss}',
-                        OwnerId = {item.OwnerId},
-                        CategoryId = {item.CategoryId}
+                        OwnerId = '{item.OwnerId}',
+                        CategoryId = {item.Category}
                 WHERE Id = '{item.Id}'
             "; 
             using var conn = new MySqlConnection(connString);
