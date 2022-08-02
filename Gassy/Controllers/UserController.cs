@@ -4,6 +4,8 @@ using Gassy.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Gassy.Models.Users; 
 using Gassy.Entities; 
+using BCrypt.Net;
+
 
 namespace Gassy.Controllers
 {
@@ -67,10 +69,10 @@ namespace Gassy.Controllers
 
         [AllowAnonymous]
         [HttpPost("Signup")]
-        public async Task<ActionResult<UserDTO>> Signup(UserDTO newUser)
+        public async Task<IActionResult> Signup(SignupRequest signupRequest)
         {
-            var response = await _userService.AddUser(newUser);
-            return Ok(response);
+            await _userService.AddUser(signupRequest);
+            return Ok();
         }
 
         [HttpPost("Edit")]
