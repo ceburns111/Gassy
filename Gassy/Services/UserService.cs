@@ -3,6 +3,8 @@ using Gassy.Authorization;
 using Gassy.Entities; 
 using Gassy.Models.Users; 
 using Gassy.Models;
+using BCrypt.Net;
+
 
 
 using Gassy.Helpers;
@@ -27,7 +29,7 @@ namespace Gassy.Services
         Task<User> GetById(int id);
         Task<IEnumerable<User>> GetAll(); 
 
-        Task<UserDTO> AddUser(UserDTO newUser);
+        Task AddUser(SignupRequest signupRequest);
         Task<EditUserDTO> EditUser(EditUserDTO newUser);
 
     }
@@ -65,24 +67,22 @@ namespace Gassy.Services
                     LastName,
                     RoleId,
                     UserName,
-                    Email
+                    Email,
+                    PasswordHash
                 FROM User 
                 WHERE UserName = '{model.UserName}'
-                    AND UserPassword = '{model.UserPassword}'
             ";
-    
+
             var connection = new MySqlConnection(connString);
             var user = (await connection.QueryAsync<User>(query, CommandType.Text, commandTimeout: 0)).FirstOrDefault();
-            Console.WriteLine($"username:{user.UserName}, role: {user.RoleId}");
-            if (user == null)
+
+            if (user == null || !BCrypt.Net.BCrypt.Verify(model.UserPassword, user.PasswordHash))
                 throw new AppException("Username or password is incorrect");
 
             var jwtToken = _jwtUtils.GenerateJwtToken(user);
             var refreshToken = _jwtUtils.GenerateRefreshToken(ipAddress);
-            
-            Console.WriteLine($"JWT Token: {jwtToken}");
-            Console.WriteLine($"Refresh Token: {refreshToken.Token}");
 
+            //Remove expired refresh tokens            
             await RemoveExpiredRefreshTokens(user);
 
             //Add the new token to database 
@@ -296,20 +296,26 @@ namespace Gassy.Services
             await connection.ExecuteAsync(query);
         }
         
-        public async Task<UserDTO> AddUser(UserDTO newUser) {
+        public async Task AddUser(SignupRequest request) {
+            var users = await GetAll();
+            var usernames = users.Select(x => x.UserName);
+
+            if (usernames.Contains(request.UserName))
+                throw new AppException($"Username {request.UserName} is already taken");
+
+            var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.UserPassword);
+
             string query = $@"
-             INSERT INTO User(FirstName, LastName, PhoneNumber, Email, UserName, UserPassword, RoleId)
-                VALUES ('{newUser.FirstName}', '{newUser.LastName}', '{newUser.PhoneNumber}'
-                , '{newUser.Email}', '{newUser.UserName}', '{newUser.UserPassword}', 1)
+             INSERT INTO User(FirstName, LastName, PhoneNumber, Email, UserName, PasswordHash, RoleId)
+                VALUES ('{request.FirstName}', '{request.LastName}', '{request.PhoneNumber}'
+                , '{request.Email}', '{request.UserName}', '{passwordHash}', 1)
             ";
     
             var connection = new MySqlConnection(connString);
             
-            var rowsAffected = await connection.ExecuteAsync(query);
-            if (rowsAffected == 1) {
-                return newUser;
-            }
-            throw new AppException("AddNewUser error");
+            await connection.ExecuteAsync(query);
+
+            Console.WriteLine($"Added User: {request.UserName}");          
         }
 
         public async Task<EditUserDTO> EditUser(EditUserDTO user) {

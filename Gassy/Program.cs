@@ -24,14 +24,14 @@ var builder = WebApplication.CreateBuilder(args);
 
 var app = builder.Build();
 
-{       app.UseCors(x => x
-            .SetIsOriginAllowed(origin => true)
-            .AllowAnyMethod()
-            .AllowAnyHeader()
-            .AllowCredentials()
-);
+{       
+    app.UseCors(x => x
+        .SetIsOriginAllowed(origin => true)
+        .AllowAnyMethod()
+        .AllowAnyHeader()
+        .AllowCredentials()
+    );
 
-  
     app.UseMiddleware<ErrorHandlerMiddleware>(); 
     app.UseMiddleware<JwtMiddleware>();
     app.MapControllers();
@@ -39,4 +39,3 @@ var app = builder.Build();
 
 
 app.Run();
-//comment
