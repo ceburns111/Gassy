@@ -1,5 +1,3 @@
-
-
 using Gassy.Helpers;
 using Gassy.Services;
 using Gassy.Authorization;

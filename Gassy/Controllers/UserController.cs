@@ -73,11 +73,19 @@ namespace Gassy.Controllers
             return Ok(response);
         }
 
-        [HttpPost("Update")]
-        public async Task<ActionResult<UserDTO>> Update(UserDTO newUser)
+        [HttpPost("Edit")]
+        public async Task<ActionResult<EditUserDTO>> Edit(EditUserDTO newUser)
         {
-            var response = await _userService.UpdateUser(newUser);
+            var response = await _userService.EditUser(newUser);
             return Ok(response);
+        }
+
+        
+        [HttpPost("{id}/Delete")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            await _userService.DeleteUser(id);
+            return Ok("User deleted");
         }
 
 

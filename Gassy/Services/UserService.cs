@@ -4,6 +4,7 @@ using Gassy.Entities;
 using Gassy.Models.Users; 
 using Gassy.Models;
 
+
 using Gassy.Helpers;
 using System.Data;
 using Microsoft.EntityFrameworkCore;
@@ -21,11 +22,13 @@ namespace Gassy.Services
         
         Task RevokeToken(string token, string ipAddress);
 
+        Task DeleteUser(int id);
+
         Task<User> GetById(int id);
         Task<IEnumerable<User>> GetAll(); 
 
         Task<UserDTO> AddUser(UserDTO newUser);
-        Task<UserDTO> UpdateUser(UserDTO newUser);
+        Task<EditUserDTO> EditUser(EditUserDTO newUser);
 
     }
 
@@ -309,23 +312,27 @@ namespace Gassy.Services
             throw new AppException("AddNewUser error");
         }
 
-        public async Task<UserDTO> UpdateUser(UserDTO newUser) {
+        public async Task<EditUserDTO> EditUser(EditUserDTO user) {
            
             string query = $@"
              UPDATE User
              SET
-                FirstName = '{newUser.FirstName}',
-                LastName = '{newUser.LastName}',
-                PhoneNumber = '{newUser.PhoneNumber}',
-                Email = '{newUser.Email}',
-                UserName = '{newUser.UserName}',
-                UserPassword = '{newUser.UserPassword}',
-            WHERE Id = {newUser.Id}
+                FirstName = '{user.FirstName}',
+                LastName = '{user.LastName}',
+                PhoneNumber = '{user.PhoneNumber}',
+                Email = '{user.Email}'
+            WHERE Id = {user.Id}
             ";
     
             using var conn = new MySqlConnection(connString);
             await conn.ExecuteAsync(query);
-            return newUser;
+            return user;
+        }
+
+        public async Task DeleteUser(int id) {
+                    string query = $@"DELETE FROM User WHERE Id = {id}";
+            using var conn = new MySqlConnection(connString);
+            await conn.ExecuteAsync(query);
         }
     }
 }
