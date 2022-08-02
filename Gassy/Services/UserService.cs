@@ -30,7 +30,7 @@ namespace Gassy.Services
         Task<IEnumerable<User>> GetAll(); 
 
         Task AddUser(SignupRequest signupRequest);
-        Task<EditUserDTO> EditUser(EditUserDTO newUser);
+        Task EditUser(EditUserRequest editRequest);
 
     }
 
@@ -318,21 +318,23 @@ namespace Gassy.Services
             Console.WriteLine($"Added User: {request.UserName}");          
         }
 
-        public async Task<EditUserDTO> EditUser(EditUserDTO user) {
-           
+        public async Task EditUser(EditUserRequest editRequest) {
+       
+        var passwordHash = BCrypt.Net.BCrypt.HashPassword(editRequest.UserPassword);
+    
             string query = $@"
              UPDATE User
              SET
-                FirstName = '{user.FirstName}',
-                LastName = '{user.LastName}',
-                PhoneNumber = '{user.PhoneNumber}',
-                Email = '{user.Email}'
-            WHERE Id = {user.Id}
+                FirstName = '{editRequest.FirstName}',
+                LastName = '{editRequest.LastName}',
+                PhoneNumber = '{editRequest.PhoneNumber}',
+                Email = '{editRequest.Email}',
+                PasswordHash = '{passwordHash}'
+            WHERE Id = {editRequest.UserId}
             ";
     
             using var conn = new MySqlConnection(connString);
             await conn.ExecuteAsync(query);
-            return user;
         }
 
         public async Task DeleteUser(int id) {

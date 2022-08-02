@@ -76,10 +76,10 @@ namespace Gassy.Controllers
         }
 
         [HttpPost("Edit")]
-        public async Task<ActionResult<EditUserDTO>> Edit(EditUserDTO newUser)
+        public async Task<IActionResult> Edit(EditUserRequest editRequest)
         {
-            var response = await _userService.EditUser(newUser);
-            return Ok(response);
+            await _userService.EditUser(editRequest);
+            return Ok();
         }
 
         
