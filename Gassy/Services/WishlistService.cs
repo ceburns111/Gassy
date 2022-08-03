@@ -107,7 +107,8 @@ namespace Gassy.Services
                         CategoryId = {(int)item.Category},
                         UpdatedAt = '{DateTime.Now:yyyy-MM-dd hh:mm:ss}',
                         OwnerId = '{item.OwnerId}',
-                        CategoryId = {item.Category}
+                        CategoryId = {(int)item.Category}
+
                 WHERE Id = '{item.Id}'
             "; 
             using var conn = new MySqlConnection(connString);
