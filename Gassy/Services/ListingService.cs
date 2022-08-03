@@ -119,11 +119,6 @@ namespace Gassy.Services
                         '{listing.UpdatedAt:yyyy-MM-dd hh:mm:ss}'
                         )";
 
-
-
-
-
-
             using var conn = new MySqlConnection(connString);
             await conn.ExecuteAsync(query);
             return listing;

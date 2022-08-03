@@ -5,7 +5,7 @@ CREATE TABLE gassydb.User (
     Email VARCHAR(100),
     PhoneNumber VARCHAR(20),
     UserName VARCHAR(25), 
-    PasswordHash VARCHAR(15),
+    PasswordHash VARCHAR(200),
     RoleId INT,
     UNIQUE(Id),
     INDEX(Id)
